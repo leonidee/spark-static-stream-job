@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "spark-static-stream-job"
+version = "0.1.0"
+description = ""
+authors = ["leonidee"]
+readme = "README.md"
+packages = [{include = "spark_static_stream_job"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
