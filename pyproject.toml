@@ -1,14 +1,23 @@
 [tool.poetry]
 name = "spark-static-stream-job"
 version = "0.1.0"
+repository = "https://github.com/leonidee/spark-static-stream-job"
 description = ""
-authors = ["leonidee"]
+authors = [
+    "Grishenkov Leonid <grishenkovleonid@gmail.com>"
+]
+license = "MIT"
 readme = "README.md"
 packages = [{include = "spark_static_stream_job"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+requests = "^2.31.0"
+python-dotenv = "^1.0.0"
 
+[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.group.testing.dependencies]
 
 [build-system]
 requires = ["poetry-core"]
