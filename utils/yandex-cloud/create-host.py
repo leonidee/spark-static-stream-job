@@ -210,25 +210,35 @@ def create_host() -> ...:
     load_dotenv()
 
     YC_IAM_TOKEN = os.getenv("YC_IAM_TOKEN")
-    DISK_SIZE = str(50 * 1024 * 1024 * 1024)
-    RAM = str(16 * 1024 * 1024 * 1024)
-    CPU_COUNT = 8
+    DISK_SIZE = 50  # in GB
+    RAM = 8  # in GB
+    CPU_COUNT = 4
 
-    # PUB_KEY_PATH = "/Users/leonidgrisenkov/.ssh/id_rsa.pub"  # todo replace with getenv
-    # PUB_KEY = Path(PUB_KEY_PATH).read_text(encoding="UTF-8")
+    PUB_KEY_PATH = "/Users/leonidgrisenkov/.ssh/id_rsa.pub"
+    PUB_KEY = Path(PUB_KEY_PATH).read_text(encoding="UTF-8")
+
     logger.info("Creating host")
 
     msg = {
         "folderId": "b1g6g4do1qltb9n60447",
-        "name": "de-debian-16",
+        "name": "de-debian-18",
         "zoneId": "ru-central1-b",
         "platformId": "standard-v3",
-        "resourcesSpec": {"memory": f"{RAM}", "cores": f"{CPU_COUNT}"},
+        "resourcesSpec": {
+            "memory": f"{RAM * 1024 * 1024 * 1024}",
+            "cores": f"{CPU_COUNT}",
+        },
         "metadata": {
-            "user-data": f"#cloud-config\nusers:\n  - name: yc-user\n    groups: sudo\n    shell: /bin/bash\n    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n     ssh-authorized-keys:\n      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDMMPrWVK4wsS7Z3s7cqh/11kryCS+i/jR0EIB1RXEmuThO0lACv2yS6zMPtNFGHGepPsvsC8Zjszu0Ntoe6kW/VOLtc7et2NBXVyfW/ZO0ttpySDMjuhLy+2uchv98vDvtnZ5fI1/03PSkmnuH+NVImLJK3E4Tc30G4JkfNkW5u7px8AjANtoxYJ5/wMCh5M7pgQm3Wro79gdTwTuZlSt9x629UoURnLEtY3mr6wQRfLySDBjbz7hqPrVUhzU0iaZWQubY9cGGx9SWg6Oaje5EzBFj/5Xs4/Ue2bIlEQv0QIgc2RiQR0mTTweCVc11NeER66z9faQBCSMo3atUSgnLqovTyxx+Zezkdf4qPc5IoY73AAO6rQUgmCN8/9fWlc8ZtPKqR5Sdsi7yMoortrO5u2QkLJKZTVBWuH5ef9f2Lc9Zc0BaveipLuhhjxH9ItvDZO5mmyZUFXMgrEnSntW79eDBaDoePb1mawrDWFjrDZJhSnuTlUHxOrpn1aweeGk7dHe+OXLH01m3Xz0i7xboVnp/nnFywecHvfd+Gh5IEAhebOmynwxx4NFqm7pzQoSLB+nliSqe2KJehyQtj56BqxsMnKMXbOrR9QCSukNaHCr33gHGFADYgKLD1yeKEZRoXjoaIAE7RcTLiJE1dxWt2esfvlLbxH0JAiuzhSOKQQ==leonide@MacBook-Pro-Leonide.local",
+            "ssh-keys": f"{PUB_KEY}",
+            "serial-port-enable": "0"
+            # "user-data": f"#cloud-config\nusers:\n  - name: yc-user\n    groups: sudo\n    shell: /bin/bash\n    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n     ssh-authorized-keys:\n      - {PUB_KEY}",
         },
         "bootDiskSpec": {
-            "diskSpec": {"size": f"{DISK_SIZE}", "imageId": "fd843htdp8usqsiji0bb"}
+            "autoDelete": True,
+            "diskSpec": {
+                "size": f"{DISK_SIZE * 1024 * 1024 * 1024}",
+                "imageId": "fd843htdp8usqsiji0bb",
+            },
         },
         "networkInterfaceSpecs": [
             {
