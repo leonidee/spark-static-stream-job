@@ -204,36 +204,33 @@ def get_list_of_service_accounts() -> ...:
 def create_host() -> ...:
     """ """
     from http import HTTPStatus
-    from pathlib import Path
+
+    import yaml
 
     find_dotenv()
     load_dotenv()
 
     YC_IAM_TOKEN = os.getenv("YC_IAM_TOKEN")
-    DISK_SIZE = 50  # in GB
+
+    DISK_SIZE = 30  # in GB
     RAM = 8  # in GB
     CPU_COUNT = 4
 
-    PUB_KEY_PATH = "/Users/leonidgrisenkov/.ssh/id_rsa.pub"
-    PUB_KEY = Path(PUB_KEY_PATH).read_text(encoding="UTF-8")
+    with open("./t.yaml") as f:
+        metadata = yaml.safe_load(f)
 
     logger.info("Creating host")
 
     msg = {
         "folderId": "b1g6g4do1qltb9n60447",
-        "name": "de-debian-18",
+        "name": "de-debian-test",
         "zoneId": "ru-central1-b",
         "platformId": "standard-v3",
         "resourcesSpec": {
             "memory": f"{RAM * 1024 * 1024 * 1024}",
             "cores": f"{CPU_COUNT}",
         },
-        "metadata": {
-            "ssh-keys": f"leonide:{PUB_KEY}",
-            "serial-port-enable": "0"
-            "install-unified-agent" : "0"
-            "user-data": f"#cloud-config\ndatasource:\n Ec2:\n  strict_id: false\n    ssh_pwauth: no\nusers:\n  - name: yc-user\n    groups: sudo\n    shell: /bin/bash\n    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n     ssh-authorized-keys:\n      - {PUB_KEY}",
-        },
+        "metadata": metadata,
         "bootDiskSpec": {
             "autoDelete": True,
             "diskSpec": {
@@ -269,8 +266,6 @@ def create_host() -> ...:
     elif response.status_code != HTTPStatus(value=200):
         response = response.json()
         logger.warning(response)
-
-        response.raise_for_status()
 
     else:
         logger.debug("Success. Request sent")
