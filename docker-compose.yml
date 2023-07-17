@@ -1,8 +1,4 @@
-# Copyright VMware, Inc.
-# SPDX-License-Identifier: APACHE-2.0
-
-version: '2'
-
+version: '3.8'
 services:
   spark-master:
     build: .
@@ -14,16 +10,41 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
     ports:
-      - '8080:8080'
-  spark-worker:
+      - '9090:8080'
+      - '7077:7077'
+
+  spark-worker-1:
     build: .
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
-      - SPARK_WORKER_MEMORY=3G
-      - SPARK_WORKER_CORES=10
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=1
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=o
+      - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+    depends_on:
+      - spark-master
+    ports:
+      - '9091:8080'
+      - '7000:7000'
+
+  spark-worker-2:
+    build: .
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    depends_on:
+      - spark-master
+    ports:
+      - '9092:8080'
+      - '7001:7000'
