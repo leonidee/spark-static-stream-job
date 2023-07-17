@@ -229,9 +229,10 @@ def create_host() -> ...:
             "cores": f"{CPU_COUNT}",
         },
         "metadata": {
-            "ssh-keys": f"{PUB_KEY}",
+            "ssh-keys": f"leonide:{PUB_KEY}",
             "serial-port-enable": "0"
-            # "user-data": f"#cloud-config\nusers:\n  - name: yc-user\n    groups: sudo\n    shell: /bin/bash\n    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n     ssh-authorized-keys:\n      - {PUB_KEY}",
+            "install-unified-agent" : "0"
+            "user-data": f"#cloud-config\ndatasource:\n Ec2:\n  strict_id: false\n    ssh_pwauth: no\nusers:\n  - name: yc-user\n    groups: sudo\n    shell: /bin/bash\n    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n     ssh-authorized-keys:\n      - {PUB_KEY}",
         },
         "bootDiskSpec": {
             "autoDelete": True,
