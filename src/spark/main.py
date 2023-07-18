@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession  # type: ignore
 
 def main():
     spark = (
-        SparkSession.builder.master("spark://spark:7077")
+        SparkSession.builder.master("spark://spark-master:7077")
         .config("spark.hadoop.fs.s3a.access.key", "YCAJEHO1oeFs63PxS3wi3c8tE")
         .config(
             "spark.hadoop.fs.s3a.secret.key", "YCOe4r1c0Fx7dghS7AmU7lrnzae3SPkqq6KIrxto"

@@ -9,4 +9,3 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/leonidee/spark-static-stream-job.git /code/spark-static-stream-job
