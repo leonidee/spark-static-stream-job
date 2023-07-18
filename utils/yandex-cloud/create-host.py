@@ -205,10 +205,7 @@ def create_host() -> ...:
     """ """
     from http import HTTPStatus
 
-    import yaml
-
-    find_dotenv()
-    load_dotenv()
+    get_iam_token()
 
     YC_IAM_TOKEN = os.getenv("YC_IAM_TOKEN")
 
@@ -216,14 +213,16 @@ def create_host() -> ...:
     RAM = 8  # in GB
     CPU_COUNT = 4
 
-    with open("./t.yaml") as f:
+    import yaml
+
+    with open("./cloud-config.yaml") as f:
         metadata = yaml.safe_load(f)
 
     logger.info("Creating host")
 
     msg = {
         "folderId": "b1g6g4do1qltb9n60447",
-        "name": "de-debian-test",
+        "name": "de-debian-test-02",
         "zoneId": "ru-central1-b",
         "platformId": "standard-v3",
         "resourcesSpec": {
@@ -273,6 +272,8 @@ def create_host() -> ...:
 
 def main() -> ...:
     create_host()
+
+    # создать машину, перезапустить и тогда все ок
 
 
 if __name__ == "__main__":
