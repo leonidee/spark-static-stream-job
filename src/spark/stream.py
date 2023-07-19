@@ -1,7 +1,10 @@
-# /usr/bin/env python3
-
 import logging
 import sys
+
+import findspark
+
+findspark.init("/opt/bitnami/spark")
+findspark.find()
 
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
@@ -18,13 +21,9 @@ logger = logging.getLogger(name=__name__)
 def main() -> ...:
     spark = (
         SparkSession.builder.master("spark://spark-master:7077")
-        .appName("test")
+        .appName("streaming-test-app")
         .getOrCreate()
     )
-    # .config(
-    #     "spark.jars.packages",
-    #     "org.apache.spark:spark-streaming-kafka-0-10_2.13-3.4.1,org.apache.spark:spark-sql-kafka-0-10_2.13-3.4.1"
-    # )
 
     msg_value_schema = T.StructType(
         [
@@ -38,26 +37,15 @@ def main() -> ...:
     df = (
         spark.readStream.format("kafka")
         .option(
-            "kafka.bootstrap.servers", "rc1b-2erh7b35n4j4v869.mdb.yandexcloud.net:9091"
-        )
-        .option("kafka.security.protocol", "SASL_SSL")
-        .option("kafka.sasl.mechanism", "SCRAM-SHA-512")
-        .option(
-            "kafka.sasl.jaas.config",
-            'org.apache.kafka.common.security.scram.ScramLoginModule required username="kafka-admin" password="de-kafka-admin-2022";',
+            "kafka.bootstrap.servers", "158.160.78.165:9092"
         )
         .option("failOnDataLoss", False)
         .option("startingOffsets", "latest")
-        .option("subscribe", "student.topic.cohort12.leonidgrishenkov")
+        .option("subscribe", "base")
         .load()
         .select(
             F.col("key").cast("string"),
             F.col("value").cast("string"),
-            "topic",
-            "partition",
-            "offset",
-            "timestamp",
-            "timestampType",
         )
         .withColumn("value", F.from_json(col=F.col("value"), schema=msg_value_schema))
     )
@@ -71,6 +59,7 @@ def main() -> ...:
 
     query = (
         df.writeStream.format("console")
+        .trigger(processingTime='10 seconds')
         .option("truncate", False)
         .outputMode("append")
         .start()
@@ -84,3 +73,102 @@ if __name__ == "__main__":
     except Exception as err:
         logger.error(err)
         sys.exit(1)
+
+
+
+# [23-07-19 18:27:28] {MicroBatchExecution} INFO: Streaming query made progress: {
+#   "id" : "90a7ee2c-2e91-4fcc-94cf-b2f4d2f431a3",
+#   "runId" : "ab99d132-bfba-4d5f-9dc5-d7004ca249cd",
+#   "name" : null,
+#   "timestamp" : "2023-07-19T18:27:25.049Z",
+#   "batchId" : 0,
+#   "numInputRows" : 0,
+#   "inputRowsPerSecond" : 0.0,
+#   "processedRowsPerSecond" : 0.0,
+#   "durationMs" : {
+#     "addBatch" : 893,
+#     "commitOffsets" : 25,
+#     "getBatch" : 572,
+#     "latestOffset" : 645,
+#     "queryPlanning" : 1438,
+#     "triggerExecution" : 3663,
+#     "walCommit" : 70
+#   },
+#   "stateOperators" : [ ],
+#   "sources" : [ {
+#     "description" : "KafkaV2[Subscribe[base]]",
+#     "startOffset" : null,
+#     "endOffset" : {
+#       "base" : {
+#         "0" : 3
+#       }
+#     },
+#     "latestOffset" : {
+#       "base" : {
+#         "0" : 3
+#       }
+#     },
+#     "numInputRows" : 0,
+#     "inputRowsPerSecond" : 0.0,
+#     "processedRowsPerSecond" : 0.0,
+#     "metrics" : {
+#       "avgOffsetsBehindLatest" : "0.0",
+#       "maxOffsetsBehindLatest" : "0",
+#       "minOffsetsBehindLatest" : "0"
+#     }
+#   } ],
+#   "sink" : {
+#     "description" : "org.apache.spark.sql.execution.streaming.ConsoleTable$@7687f0e2",
+#     "numOutputRows" : 0
+#   }
+# }
+# [23-07-19 18:29:46] {MicroBatchExecution} INFO: Streaming query made progress: {
+#   "id" : "90a7ee2c-2e91-4fcc-94cf-b2f4d2f431a3",
+#   "runId" : "ab99d132-bfba-4d5f-9dc5-d7004ca249cd",
+#   "name" : null,
+#   "timestamp" : "2023-07-19T18:29:46.282Z",
+#   "batchId" : 303,
+#   "numInputRows" : 1035,
+#   "inputRowsPerSecond" : 9495.412844036697,
+#   "processedRowsPerSecond" : 10247.524752475247,
+#   "durationMs" : {
+#     "addBatch" : 51,
+#     "commitOffsets" : 20,
+#     "getBatch" : 0,
+#     "latestOffset" : 2,
+#     "queryPlanning" : 4,
+#     "triggerExecution" : 101,
+#     "walCommit" : 24
+#   },
+#   "stateOperators" : [ ],
+#   "sources" : [ {
+#     "description" : "KafkaV2[Subscribe[base]]",
+#     "startOffset" : {
+#       "base" : {
+#         "0" : 410401
+#       }
+#     },
+#     "endOffset" : {
+#       "base" : {
+#         "0" : 411436
+#       }
+#     },
+#     "latestOffset" : {
+#       "base" : {
+#         "0" : 411436
+#       }
+#     },
+#     "numInputRows" : 1035,
+#     "inputRowsPerSecond" : 9495.412844036697,
+#     "processedRowsPerSecond" : 10247.524752475247,
+#     "metrics" : {
+#       "avgOffsetsBehindLatest" : "0.0",
+#       "maxOffsetsBehindLatest" : "0",
+#       "minOffsetsBehindLatest" : "0"
+#     }
+#   } ],
+#   "sink" : {
+#     "description" : "org.apache.spark.sql.execution.streaming.ConsoleTable$@7687f0e2",
+#     "numOutputRows" : 1035
+#   }
+# }

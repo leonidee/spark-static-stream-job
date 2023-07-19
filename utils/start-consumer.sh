@@ -11,5 +11,6 @@
 
 
 
-kafkacat -b 158.160.6.228:9092 \
-    -t base -C -o end -K:
+kafkacat -b 158.160.78.165:9092 \
+    -t base -C -o begining \
+    -f 'Message Key: %k\nMessage Value: %s\nPartition: %p\nOffset: %o\nTimestamp: %T\n'
