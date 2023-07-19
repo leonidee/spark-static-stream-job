@@ -17,6 +17,7 @@ x-spark-common: &spark-common
   volumes:
     - ./src:/code/src
     - ./jobs:/code/jobs
+    - ./utils:/code/utils
     - ./pyproject.toml:/code/pyproject.toml
     - ./poetry.lock:/code/poetry.lock
     - ./config/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
@@ -59,4 +60,24 @@ services:
       - "8083:8081"
     depends_on:
       - spark-master
+
+# https://github.com/bitnami/containers/tree/main/bitnami/kafka
+  kafka:
+    image: docker.io/bitnami/kafka:3.4
+    container_name: kafka
+    ports:
+      - 9092:9092 # Внешний порт. По этому порту будем обращаться к образу
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094 
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://158.160.6.228:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+
+
+# https://www.youtube.com/watch?v=KerNf0NANMo&t=1496s
+# 24:57
+
 
