@@ -2,6 +2,8 @@ import json
 import sys
 import uuid
 from datetime import datetime
+import s3fs
+import dotenv
 
 import pandas as pd
 from kafka import KafkaProducer
@@ -54,11 +56,24 @@ def send_polyline(client_id, polyline, producer, topic_name):
 
 
 def read_data(file_name):
-    return pd.read_csv(file_name)
+    import os
+
+    dotenv.find_dotenv()
+    dotenv.load_dotenv()
+
+    s3 = s3fs.S3FileSystem(
+        key=os.getenv("AWS_ACCESS_KEY_ID"),
+        secret=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        endpoint_url=os.getenv("AWS_ENDPOINT_URL")
+    )
+    with s3.open(file_name, "r") as f:
+        df = pd.read_csv(f)
+
+    return df
 
 def main():
     topic_name = "base"
-    file_name = "https://storage.yandexcloud.net/data-ice-lake-05/master/data/source/spark-statis-stream/user-data/routes.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=YCAJEnnP3avd7Jzp430xyzGee%2F20230719%2Fru-central1%2Fs3%2Faws4_request&X-Amz-Date=20230719T183929Z&X-Amz-Expires=3600&X-Amz-Signature=B9E7272E919274C8ED6DD7E63A412BBBAB530A6B6B06DBBCBB7621892167AA80&X-Amz-SignedHeaders=host"
+    file_name = "data-ice-lake-05/master/data/source/spark-statis-stream/user-data/routes.csv"
 
     df = read_data(file_name)
     send_messages(df, topic_name)
