@@ -1,9 +1,10 @@
 import logging
+import os
 import sys
 
 import findspark
 
-findspark.init("/opt/bitnami/spark")
+findspark.init(os.getenv("SPARK_HOME"))
 findspark.find()
 
 import pyspark.sql.functions as F
@@ -36,9 +37,7 @@ def main() -> ...:
 
     df = (
         spark.readStream.format("kafka")
-        .option(
-            "kafka.bootstrap.servers", "158.160.78.165:9092"
-        )
+        .option("kafka.bootstrap.servers", "158.160.78.165:9092")
         .option("failOnDataLoss", False)
         .option("startingOffsets", "latest")
         .option("subscribe", "base")
@@ -59,7 +58,7 @@ def main() -> ...:
 
     query = (
         df.writeStream.format("console")
-        .trigger(processingTime='10 seconds')
+        .trigger(processingTime="10 seconds")
         .option("truncate", False)
         .outputMode("append")
         .start()
@@ -73,7 +72,6 @@ if __name__ == "__main__":
     except Exception as err:
         logger.error(err)
         sys.exit(1)
-
 
 
 # [23-07-19 18:27:28] {MicroBatchExecution} INFO: Streaming query made progress: {

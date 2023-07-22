@@ -16,12 +16,14 @@ x-spark-common: &spark-common
     # More environment variables natively supported by Apache Spark
     # can be found here -> https://spark.apache.org/docs/latest/spark-standalone.html#cluster-launch-scripts
   volumes:
-    - ./src:/code/src
-    - ./jobs:/code/jobs
-    - ./utils:/code/utils
-    - ./pyproject.toml:/code/pyproject.toml
-    - ./poetry.lock:/code/poetry.lock
-    - ./config/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
+    - ./src:/app/src
+    - ./jobs:/app/jobs
+    - ./utils:/app/utils
+    - ./.env:/app/.env
+    - ./pyproject.toml:/app/pyproject.toml
+    - ./poetry.lock:/app/poetry.lock
+    - ./config/spark/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
+  restart: unless-stopped
 
 services:
   spark-master:
@@ -46,21 +48,21 @@ services:
     depends_on:
       - spark-master
 
-  spark-worker-2:
-    <<: *spark-common
-    container_name: spark-worker-2
-    ports:
-      - "8082:8081"
-    depends_on:
-      - spark-master
+  # spark-worker-2:
+  #   <<: *spark-common
+  #   container_name: spark-worker-2
+  #   ports:
+  #     - "8082:8081"
+  #   depends_on:
+  #     - spark-master
 
-  spark-worker-3:
-    <<: *spark-common
-    container_name: spark-worker-3
-    ports:
-      - "8083:8081"
-    depends_on:
-      - spark-master
+  # spark-worker-3:
+  #   <<: *spark-common
+  #   container_name: spark-worker-3
+  #   ports:
+  #     - "8083:8081"
+  #   depends_on:
+  #     - spark-master
 
 # https://github.com/bitnami/containers/tree/main/bitnami/kafka
   kafka:
@@ -71,14 +73,25 @@ services:
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.78.165:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://84.201.142.181:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      # - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094 
-      # - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://158.160.6.228:9094
-      # - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    volumes:
+      - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
+    restart: unless-stopped
 
+  producer:
+    build: 
+      dockerfile: docker/producer/Dockerfile
+    container_name: producer
+    depends_on:
+      - kafka
+    volumes:
+      - ./src:/app/src
+      - ./utils:/app/utils
+      - ./.env:/app/.env
+    restart: unless-stopped
 
+    
 
 
 

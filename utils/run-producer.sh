@@ -6,4 +6,4 @@ else
     poetry shell
 fi
 
-exec python src/producer/producer.py 
+python /app/src/producer/producer.py 

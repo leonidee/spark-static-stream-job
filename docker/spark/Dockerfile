@@ -2,10 +2,10 @@
 FROM docker.io/bitnami/spark:3.4.1 
 
 USER root
-WORKDIR /code
+WORKDIR /app
 
-COPY ./pyproject.toml /code/pyproject.toml
-COPY ./poetry.lock /code/poetry.lock
+COPY ./pyproject.toml /app/pyproject.toml
+COPY ./poetry.lock /app/poetry.lock
 
 RUN apt-get update \
     && apt-get upgrade -y \
