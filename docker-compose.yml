@@ -91,7 +91,7 @@ services:
   #     - ./.env:/app/.env
   #     - ./producer:/app/producer
   #   command: /bin/bash /app/producer/run.sh
-  #   restart: unless-stopped
+    # restart: on-failure
 
     
 

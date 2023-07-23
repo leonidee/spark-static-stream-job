@@ -1,14 +1,14 @@
 import sys
 from os import getenv
 
-sys.path.append("/app")
-from src.logger import LogManager
-
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from pyspark.sql import DataFrame
+from pyspark.sql.streaming import DataStreamWriter
 from pyspark.sql.utils import AnalysisException, CapturedException
 
+sys.path.append("/app")
+from src.logger import LogManager
 
 log = LogManager(level="DEBUG").get_logger(name=__name__)
 
@@ -22,20 +22,20 @@ class StreamCollector:
         log.info("Initializing Spark Session")
 
         self.spark = (
-            SparkSession
-                .builder
-                .master("spark://spark-master:7077")
-                .appName(app_name)
-                .config(map={
+            SparkSession.builder.master("spark://spark-master:7077")
+            .appName(app_name)
+            .config(
+                map={
                     "spark.hadoop.fs.s3a.access.key": getenv("AWS_ACCESS_KEY_ID"),
                     "spark.hadoop.fs.s3a.secret.key": getenv("AWS_SECRET_ACCESS_KEY"),
                     "spark.hadoop.fs.s3a.endpoint": getenv("AWS_ENDPOINT_URL"),
                     "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
-                })
-                .getOrCreate()
+                }
+            )
+            .getOrCreate()
         )
 
-    def get_marketing_frame(self) -> DataFrame:
+    def get_marketing_data(self) -> DataFrame:
         df = self.spark.read.csv(
             "s3a://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv",
             inferSchema=True,
@@ -54,6 +54,50 @@ class StreamCollector:
 
         return df
 
+    def get_clients_locations_stream(self, topic: str) -> DataFrame:
+        msg_value_schema = T.StructType(
+            [
+                T.StructField("client_id", T.StringType(), True),
+                T.StructField("timestamp", T.DoubleType(), True),
+                T.StructField("lat", T.DoubleType(), True),
+                T.StructField("lon", T.DoubleType(), True),
+            ]
+        )
+
+        df = (
+            self.spark.readStream.format("kafka")
+            .option("kafka.bootstrap.servers", getenv("KAFKA_BOOTSTRAP_SERVER"))
+            .option("failOnDataLoss", False)
+            .option("startingOffsets", "latest")
+            .option("subscribe", topic)
+            .load()
+            .select(
+                F.col("key").cast(T.StringType()),
+                F.col("value").cast(T.StringType()),
+                "topic",
+                "partition",
+                "offset",
+                "timestamp",
+                "timestampType",
+            )
+            .withColumn(
+                "value", F.from_json(col=F.col("value"), schema=msg_value_schema)
+            )
+        )
+
+        return df
+
+    def get_stream(
+        self, input_topic: str, output_topic: str | None = None
+    ) -> DataStreamWriter:
+        df = self.get_clients_locations_stream(topic=input_topic)
+
+        return (
+            df.writeStream.format("console")
+            .option("truncate", False)
+            .outputMode("append")
+            .trigger(processingTime="15 seconds")
+        )
 
 
 # def main() -> ...:

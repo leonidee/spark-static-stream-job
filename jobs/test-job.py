@@ -1,29 +1,33 @@
 import sys
 
+from pyspark.sql.utils import AnalysisException, CapturedException
+
 sys.path.append("/app")
 from src.logger import LogManager
-from src.spark.collector import StreamCollector
-
-from pyspark.sql.utils import AnalysisException, CapturedException
+from src.spark import StreamCollector
 
 log = LogManager(level="DEBUG").get_logger(name=__name__)
 
+
 def main() -> ...:
+    try:
+        collector = StreamCollector(app_name="test-app")
+        query = collector.get_query()
 
-    # try:
-    collector = StreamCollector(app_name="test-app")
+        query.start().awaitTermination()
 
-    df = collector.get_marketing_frame()
+        query.stop()
+        collector.spark.stop()
 
-    df.show(50)
-    df.printSchema()
-
-    collector.spark.stop()
-
-    # except (AnalysisException, CapturedException) as err:
-    #     log.exception(err)
-    #     sys.exit(1)
+    except (AnalysisException, CapturedException) as err:
+        log.error(err)
+        collector.spark.stop()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as err:
+        log.exception(err)
+        sys.exit(2)
