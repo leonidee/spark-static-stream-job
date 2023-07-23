@@ -5,7 +5,7 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y curl htop supervisor \
+    && apt-get install -y curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,5 +19,3 @@ COPY ./poetry.lock /app/poetry.lock
 
 RUN poetry env use $(which python3) \
     && poetry install
-
-

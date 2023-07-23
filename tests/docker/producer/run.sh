@@ -3,8 +3,8 @@
 docker build -t producer -f ./docker/producer/Dockerfile .
 
 docker run --rm -it \
-    --name producer-test \
+    --name producer \
     --volume ./src:/app/src \
     --volume ./.env:/app/.env \
-    --volume ./utils:/app/utils \
-    producer /bin/bash
+    --volume ./producer:/app/producer \
+    producer /app/producer/run.sh

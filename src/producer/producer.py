@@ -31,6 +31,8 @@ class DataProducer:
     def start_producing(self, df: DataFrame, topic_name: str) -> ...:
         log.info(f"Starting producing data for '{topic_name}' kafka topic")
 
+        log.info("Processing...")
+
         i = 0
         for row in df.iterrows():
             client_id = str(uuid.uuid1())
@@ -90,22 +92,3 @@ class DataProducer:
         log.debug(f"Loaded frame with shape {df.shape}")
 
         return df
-
-
-def main() -> ...:
-    producer = DataProducer()
-    df = producer.get_data(
-        path_to_data="s3://data-ice-lake-05/master/data/source/spark-statis-stream/user-data/routes.csv"
-    )
-
-    topic_name = "test"
-
-    producer.start_producing(df=df, topic_name=topic_name)
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as err:
-        log.exception(err)
-        sys.exit(2)

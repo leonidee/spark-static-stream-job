@@ -1,30 +1,54 @@
-import logging
-import os
 import sys
+from os import getenv
 
 import findspark
 
-findspark.init(os.getenv("SPARK_HOME"))
+sys.path.append("/app")
+from src.logger import LogManager
+
+findspark.init(getenv("SPARK_HOME"))
 findspark.find()
 
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
-from pyspark.sql import SparkSession
+from pyspark.sql import DataFrame
 from pyspark.sql.utils import AnalysisException, CapturedException
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=r"[%(asctime)s] {%(name)s.%(funcName)s:%(lineno)d} %(levelname)s: %(message)s",
-)
-logger = logging.getLogger(name=__name__)
+log = LogManager(level="DEBUG").get_logger(name=__name__)
 
+class StreamCollector:
+    __slots__ = (
+        "spark"
+    )
+
+    def __init__(self, app_name: str) -> None:
+        from pyspark.sql import SparkSession
+
+        log.info("Initializing Spark Session")
+        self.spark = (
+            SparkSession
+                .builder
+                .master("spark://spark-master:7077")
+                .appName(app_name)
+                 .config({
+                    "spark.hadoop.fs.s3a.access.key": getenv('AWS_ACCESS_KEY_ID'),
+                    "spark.hadoop.fs.s3a.secret.key": getenv('AWS_SECRET_ACCESS_KEY'),
+                    "spark.hadoop.fs.s3a.endpoint": getenv('AWS_ENDPOINT_URL'),
+                      "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
+                    })
+                .getOrCreate()
+            )
+
+    def get_marketing_frame(self) -> DataFrame:
+        df = (
+            self.spark.read.csv("s3://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv")
+        )
+
+        return df
+
+    
 
 def main() -> ...:
-    spark = (
-        SparkSession.builder.master("spark://spark-master:7077")
-        .appName("streaming-test-app")
-        .getOrCreate()
-    )
 
     msg_value_schema = T.StructType(
         [
@@ -37,7 +61,7 @@ def main() -> ...:
 
     df = (
         spark.readStream.format("kafka")
-        .option("kafka.bootstrap.servers", "158.160.78.165:9092")
+        .option("kafka.bootstrap.servers", getenv("KAFKA_BOOTSTRAP_SERVER"))
         .option("failOnDataLoss", False)
         .option("startingOffsets", "latest")
         .option("subscribe", "base")
