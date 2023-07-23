@@ -26,27 +26,27 @@ x-spark-common: &spark-common
   restart: unless-stopped
 
 services:
-  spark-master:
-    <<: *spark-common
-    container_name: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-      - SPARK_USER=spark
-    ports:
-      - "8080:8080"
-      - "7077:7077"
+  # spark-master:
+  #   <<: *spark-common
+  #   container_name: spark-master
+  #   environment:
+  #     - SPARK_MODE=master
+  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
+  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
+  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+  #     - SPARK_SSL_ENABLED=no
+  #     - SPARK_USER=spark
+  #   ports:
+  #     - "8080:8080"
+  #     - "7077:7077"
 
-  spark-worker-1:
-    <<: *spark-common
-    container_name: spark-worker-1
-    ports:
-      - "8081:8081"
-    depends_on:
-      - spark-master
+  # spark-worker-1:
+  #   <<: *spark-common
+  #   container_name: spark-worker-1
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     - spark-master
 
   # spark-worker-2:
   #   <<: *spark-common
@@ -73,8 +73,9 @@ services:
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://84.201.142.181:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.75.236:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
       - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
     restart: unless-stopped
@@ -89,6 +90,15 @@ services:
       - ./src:/app/src
       - ./utils:/app/utils
       - ./.env:/app/.env
+      - ./producer:/app/producer
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        sleep 30s
+        cd /app
+        source $(poetry env info --path)/bin/activate
+        python /app/producer/produce-data.py test
     restart: unless-stopped
 
     
