@@ -1,101 +1,109 @@
 import sys
 from os import getenv
 
-import findspark
-
 sys.path.append("/app")
 from src.logger import LogManager
-
-findspark.init(getenv("SPARK_HOME"))
-findspark.find()
 
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from pyspark.sql import DataFrame
 from pyspark.sql.utils import AnalysisException, CapturedException
 
+
 log = LogManager(level="DEBUG").get_logger(name=__name__)
 
+
 class StreamCollector:
-    __slots__ = (
-        "spark"
-    )
+    __slots__ = "spark"
 
     def __init__(self, app_name: str) -> None:
         from pyspark.sql import SparkSession
 
         log.info("Initializing Spark Session")
+
         self.spark = (
             SparkSession
                 .builder
                 .master("spark://spark-master:7077")
                 .appName(app_name)
-                 .config({
-                    "spark.hadoop.fs.s3a.access.key": getenv('AWS_ACCESS_KEY_ID'),
-                    "spark.hadoop.fs.s3a.secret.key": getenv('AWS_SECRET_ACCESS_KEY'),
-                    "spark.hadoop.fs.s3a.endpoint": getenv('AWS_ENDPOINT_URL'),
-                      "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
-                    })
+                .config(map={
+                    "spark.hadoop.fs.s3a.access.key": getenv("AWS_ACCESS_KEY_ID"),
+                    "spark.hadoop.fs.s3a.secret.key": getenv("AWS_SECRET_ACCESS_KEY"),
+                    "spark.hadoop.fs.s3a.endpoint": getenv("AWS_ENDPOINT_URL"),
+                    "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
+                })
                 .getOrCreate()
-            )
+        )
 
     def get_marketing_frame(self) -> DataFrame:
-        df = (
-            self.spark.read.csv("s3://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv")
+        df = self.spark.read.csv(
+            "s3a://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv",
+            inferSchema=True,
+            header=True,
+        )
+
+        df = df.select(
+            F.col("id").alias("adv_campaign_id"),
+            F.col("name").alias("adv_campaign_name"),
+            F.col("description").alias("adv_campaign_description"),
+            F.col("start_time").alias("adv_campaign_start_time"),
+            F.col("end_time").alias("adv_campaign_end_time"),
+            F.col("point_lat").alias("adv_campaign_point_lat"),
+            F.col("point_lon").alias("adv_campaign_point_lon"),
         )
 
         return df
 
-    
-
-def main() -> ...:
-
-    msg_value_schema = T.StructType(
-        [
-            T.StructField("client_id", T.StringType(), True),
-            T.StructField("timestamp", T.DoubleType(), True),
-            T.StructField("lat", T.DoubleType(), True),
-            T.StructField("lon", T.DoubleType(), True),
-        ]
-    )
-
-    df = (
-        spark.readStream.format("kafka")
-        .option("kafka.bootstrap.servers", getenv("KAFKA_BOOTSTRAP_SERVER"))
-        .option("failOnDataLoss", False)
-        .option("startingOffsets", "latest")
-        .option("subscribe", "base")
-        .load()
-        .select(
-            F.col("key").cast("string"),
-            F.col("value").cast("string"),
-        )
-        .withColumn("value", F.from_json(col=F.col("value"), schema=msg_value_schema))
-    )
-
-    df = df.select(
-        F.col("value.client_id").alias("client_id"),
-        F.col("value.timestamp").alias("timestamp"),
-        F.col("value.lat").alias("lat"),
-        F.col("value.lon").alias("lon"),
-    )
-
-    query = (
-        df.writeStream.format("console")
-        .trigger(processingTime="10 seconds")
-        .option("truncate", False)
-        .outputMode("append")
-        .start()
-        .awaitTermination()
-    )
 
 
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as err:
-        logger.error(err)
-        sys.exit(1)
+# def main() -> ...:
+
+#     msg_value_schema = T.StructType(
+#         [
+#             T.StructField("client_id", T.StringType(), True),
+#             T.StructField("timestamp", T.DoubleType(), True),
+#             T.StructField("lat", T.DoubleType(), True),
+#             T.StructField("lon", T.DoubleType(), True),
+#         ]
+#     )
+
+#     df = (
+#         spark.readStream.format("kafka")
+#         .option("kafka.bootstrap.servers", getenv("KAFKA_BOOTSTRAP_SERVER"))
+#         .option("failOnDataLoss", False)
+#         .option("startingOffsets", "latest")
+#         .option("subscribe", "base")
+#         .load()
+#         .select(
+#             F.col("key").cast("string"),
+#             F.col("value").cast("string"),
+#         )
+#         .withColumn("value", F.from_json(col=F.col("value"), schema=msg_value_schema))
+#     )
+
+#     df = df.select(
+#         F.col("value.client_id").alias("client_id"),
+#         F.col("value.timestamp").alias("timestamp"),
+#         F.col("value.lat").alias("lat"),
+#         F.col("value.lon").alias("lon"),
+#     )
+
+#     query = (
+#         df.writeStream.format("console")
+#         .trigger(processingTime="10 seconds")
+#         .option("truncate", False)
+#         .outputMode("append")
+#         .start()
+#         .awaitTermination()
+#     )
+
+
+# if __name__ == "__main__":
+#     try:
+#         main()
+#     except Exception as err:
+#         logger.error(err)
+#         sys.exit(1)
 
 
 # [23-07-19 18:27:28] {MicroBatchExecution} INFO: Streaming query made progress: {

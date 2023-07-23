@@ -10,25 +10,20 @@ log = LogManager(level="DEBUG").get_logger(name=__name__)
 
 def main() -> ...:
 
-    try:
-        collector = StreamCollector(app_name="test-app")
+    # try:
+    collector = StreamCollector(app_name="test-app")
 
-        df = collector.get_marketing_frame()
+    df = collector.get_marketing_frame()
 
-        df.show(100, False)
-        df.printSchema()
+    df.show(50)
+    df.printSchema()
 
-        collector.spark.stop()
-        sys.exit(0)
+    collector.spark.stop()
 
-    except (AnalysisException, CapturedException) as err:
-        log.exception(err)
-        sys.exit(1)
+    # except (AnalysisException, CapturedException) as err:
+    #     log.exception(err)
+    #     sys.exit(1)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as err:
-        log.exception(err)
-        sys.exit(2)
+    main()
