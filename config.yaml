@@ -1,0 +1,9 @@
+logging:
+  level:
+    python: debug
+    spark: info
+
+spark:
+  jobs:
+    stream-job:
+      marketing-data-path: s3a://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv
