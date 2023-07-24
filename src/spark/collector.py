@@ -3,6 +3,7 @@ from os import getenv
 
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
+import yaml
 from pyspark.sql import DataFrame
 from pyspark.sql.streaming import DataStreamWriter
 from pyspark.sql.utils import AnalysisException, CapturedException
@@ -10,7 +11,10 @@ from pyspark.sql.utils import AnalysisException, CapturedException
 sys.path.append("/app")
 from src.logger import LogManager
 
-log = LogManager(level="DEBUG").get_logger(name=__name__)
+log = LogManager().get_logger(name=__name__)
+
+with open("/app/config.yaml") as f:
+    config = yaml.safe_load(f)
 
 
 class StreamCollector:
@@ -34,6 +38,8 @@ class StreamCollector:
             )
             .getOrCreate()
         )
+
+        self.spark.sparkContext.setLogLevel(config["logging"]["spark"]["level"].upper())
 
     def get_marketing_data(self) -> DataFrame:
         df = self.spark.read.csv(
@@ -88,7 +94,10 @@ class StreamCollector:
         return df
 
     def get_stream(
-        self, input_topic: str, output_topic: str | None = None
+        self,
+        marketing_data_path: str,
+        input_topic: str,
+        output_topic: str,
     ) -> DataStreamWriter:
         df = self.get_clients_locations_stream(topic=input_topic)
 

@@ -20,6 +20,7 @@ x-spark-common: &spark-common
     - ./jobs:/app/jobs
     - ./spark:/app/spark
     - ./.env:/app/.env
+    - ./config.yaml:/app/config.yaml
     - ./pyproject.toml:/app/pyproject.toml
     - ./poetry.lock:/app/poetry.lock
     - ./config/spark/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
@@ -64,21 +65,21 @@ services:
   #   depends_on:
   #     - spark-master
 
-# # https://github.com/bitnami/containers/tree/main/bitnami/kafka
-#   kafka:
-#     image: docker.io/bitnami/kafka:3.4
-#     container_name: kafka
-#     ports:
-#       - 9092:9092
-#     environment:
-#       - ALLOW_PLAINTEXT_LISTENER=yes
-#       - KAFKA_CFG_BROKER_ID=1
-#       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.75.236:9092
-#       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-#       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-#     volumes:
-#       - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
-#     restart: unless-stopped
+# https://github.com/bitnami/containers/tree/main/bitnami/kafka
+  kafka:
+    image: docker.io/bitnami/kafka:3.4
+    container_name: kafka
+    ports:
+      - 9092:9092
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.22.230:9092
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    volumes:
+      - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
+    restart: unless-stopped
 
   # producer:
   #   build: 
@@ -90,6 +91,7 @@ services:
   #     - ./src:/app/src
   #     - ./.env:/app/.env
   #     - ./producer:/app/producer
+  #     - ./config.yaml:/app/config.yaml
   #   command: /bin/bash /app/producer/run.sh
     # restart: on-failure
 

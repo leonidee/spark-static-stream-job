@@ -6,20 +6,18 @@ import uuid
 from datetime import datetime
 from os import getenv
 
-from dotenv import find_dotenv, load_dotenv
 from kafka import KafkaProducer
 from pandas import DataFrame
 
 sys.path.append("/app")
 from src.logger import LogManager
 
-find_dotenv()
-load_dotenv()
-
-log = LogManager(level="DEBUG").get_logger(name=__name__)
+log = LogManager().get_logger(name=__name__)
 
 
 class DataProducer:
+    __slots__ = ("kafka",)
+
     def __init__(self) -> None:
         self.kafka: KafkaProducer = self._create_producer()
 
@@ -78,7 +76,7 @@ class DataProducer:
         from pandas import read_csv
         from s3fs import S3FileSystem
 
-        log.debug(f"Getting input data from -> '{path_to_data}'")
+        log.info(f"Getting input data for producing from -> '{path_to_data}'")
 
         s3 = S3FileSystem(
             key=getenv("AWS_ACCESS_KEY_ID"),

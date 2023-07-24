@@ -1,9 +1,20 @@
 logging:
-  level:
-    python: debug
-    spark: info
+  python:
+    level: debug
+    stream-handler: console
+  spark:
+    level: warn
 
 spark:
   jobs:
     stream-job:
+      application-name: test-app
       marketing-data-path: s3a://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv
+      topic:
+        input: test
+        output: test.out
+
+producer:
+  topic:
+    output: test
+  data-path: s3://data-ice-lake-05/master/data/source/spark-statis-stream/user-data/routes.csv

@@ -1,25 +1,23 @@
 import sys
 
+import yaml
+
 sys.path.append("/app")
 from src.logger import LogManager
 from src.producer import DataProducer
 
-log = LogManager(level="DEBUG").get_logger(name=__name__)
+log = LogManager().get_logger(name=__name__)
+
+with open("/app/config.yaml") as f:
+    config = yaml.safe_load(f)
 
 
 def main() -> ...:
-    if len(sys.argv) > 2:
-        raise IndexError("Too many arguments! Expected 1")
-
-    TOPIC_NAME = str(sys.argv[1])
-
     producer = DataProducer()
 
-    df = producer.get_data(
-        path_to_data="s3://data-ice-lake-05/master/data/source/spark-statis-stream/user-data/routes.csv"
-    )
+    df = producer.get_data(path_to_data=config["producer"]["data-path"])
 
-    producer.start_producing(df=df, topic_name=TOPIC_NAME)
+    producer.start_producing(df=df, topic_name=config["producer"]["topic"]["output"])
 
 
 if __name__ == "__main__":

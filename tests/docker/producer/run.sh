@@ -7,4 +7,5 @@ docker run --rm -it \
     --volume ./src:/app/src \
     --volume ./.env:/app/.env \
     --volume ./producer:/app/producer \
+    --volume ./config.yaml:/app/config.yaml \
     producer /app/producer/run.sh
