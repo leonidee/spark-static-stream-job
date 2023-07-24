@@ -12,6 +12,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Build python from source
 RUN mkdir /opt/python && mkdir /opt/python/python-3.11.1 \ 
     && curl https://www.python.org/ftp/python/3.11.1/Python-3.11.1.tgz --output /opt/python/python-3.11.1/source.tgz \
     && tar xvf /opt/python/python-3.11.1/source.tgz -C /opt/python/python-3.11.1 \
@@ -28,8 +29,11 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry /opt/p
 
 ENV PATH="/opt/poetry/bin:$PATH"
 
+# Install dependensies
 COPY ./pyproject.toml /app/pyproject.toml
 COPY ./poetry.lock /app/poetry.lock
 
-RUN poetry env use /opt/python/python-3.11.1/bin/python3.11 \
+RUN cd /app \
+    && poetry env use /opt/python/python-3.11.1/bin/python3.11 \
+    && source $(poetry env info --path)/bin/activate \
     && poetry install

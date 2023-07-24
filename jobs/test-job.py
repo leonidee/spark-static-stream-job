@@ -12,7 +12,7 @@ log = LogManager(level="DEBUG").get_logger(name=__name__)
 def main() -> ...:
     try:
         collector = StreamCollector(app_name="test-app")
-        query = collector.get_query()
+        query = collector.get_stream(input_topic="test")
 
         query.start().awaitTermination()
 
