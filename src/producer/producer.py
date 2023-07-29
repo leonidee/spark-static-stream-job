@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 import json
-import sys
 import uuid
 from datetime import datetime
 from os import getenv
@@ -9,7 +6,6 @@ from os import getenv
 from kafka import KafkaProducer
 from pandas import DataFrame
 
-sys.path.append("/app")
 from src.logger import LogManager
 
 log = LogManager().get_logger(name=__name__)
@@ -26,7 +22,9 @@ class DataProducer:
 
         return KafkaProducer(bootstrap_servers=getenv("KAFKA_BOOTSTRAP_SERVER"))
 
-    def start_producing(self, df: DataFrame, topic_name: str) -> ...:
+    def produce_data(self, path_to_data: str, topic_name: str) -> ...:
+        df = self._get_data(path=path_to_data)
+
         log.info(f"Starting producing data for '{topic_name}' kafka topic")
 
         log.info("Processing...")
@@ -72,11 +70,11 @@ class DataProducer:
             if i % 10 == 0:
                 self.kafka.send(topic=topic_name, value=message_json)
 
-    def get_data(self, path_to_data: str) -> DataFrame:
+    def _get_data(self, path: str) -> DataFrame:
         from pandas import read_csv
         from s3fs import S3FileSystem
 
-        log.info(f"Getting input data for producing from -> '{path_to_data}'")
+        log.info(f"Getting input data for producing from -> '{path}'")
 
         s3 = S3FileSystem(
             key=getenv("AWS_ACCESS_KEY_ID"),
@@ -84,7 +82,7 @@ class DataProducer:
             endpoint_url=getenv("AWS_ENDPOINT_URL"),
         )
 
-        with s3.open(path_to_data, "r") as f:
+        with s3.open(path, "r") as f:
             df = read_csv(f)
 
         log.debug(f"Loaded frame with shape {df.shape}")

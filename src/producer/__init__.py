@@ -1,8 +1,13 @@
-from dotenv import find_dotenv, load_dotenv
+from __future__ import annotations
 
-find_dotenv()
-load_dotenv()
+import sys
 
+import dotenv
+
+dotenv.find_dotenv()
+dotenv.load_dotenv()
+
+sys.path.append("/app")
 
 from src.producer.producer import DataProducer
 

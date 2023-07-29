@@ -5,4 +5,4 @@ cd /app
 
 source $(poetry env info --path)/bin/activate
 
-python /app/producer/produce-data.py
+python /app/producer/__init__.py

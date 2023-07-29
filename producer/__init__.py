@@ -15,9 +15,10 @@ with open("/app/config.yaml") as f:
 def main() -> ...:
     producer = DataProducer()
 
-    df = producer.get_data(path_to_data=config["producer"]["data-path"])
-
-    producer.start_producing(df=df, topic_name=config["producer"]["topic"]["output"])
+    producer.produce_data(
+        path_to_data=config["producer"]["data-path"],
+        topic_name=config["producer"]["topic"]["output"],
+    )
 
 
 if __name__ == "__main__":

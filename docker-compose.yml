@@ -49,21 +49,21 @@ services:
     depends_on:
       - spark-master
 
-  # spark-worker-2:
-  #   <<: *spark-common
-  #   container_name: spark-worker-2
-  #   ports:
-  #     - "8082:8081"
-  #   depends_on:
-  #     - spark-master
+  spark-worker-2:
+    <<: *spark-common
+    container_name: spark-worker-2
+    ports:
+      - "8082:8081"
+    depends_on:
+      - spark-master
 
-  # spark-worker-3:
-  #   <<: *spark-common
-  #   container_name: spark-worker-3
-  #   ports:
-  #     - "8083:8081"
-  #   depends_on:
-  #     - spark-master
+  spark-worker-3:
+    <<: *spark-common
+    container_name: spark-worker-3
+    ports:
+      - "8083:8081"
+    depends_on:
+      - spark-master
 
 # https://github.com/bitnami/containers/tree/main/bitnami/kafka
   kafka:
@@ -74,26 +74,26 @@ services:
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.22.230:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.17.44:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
       - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
     restart: unless-stopped
 
-  # producer:
-  #   build: 
-  #     dockerfile: docker/producer/Dockerfile
-  #   container_name: producer
-  #   depends_on:
-  #     - kafka
-  #   volumes:
-  #     - ./src:/app/src
-  #     - ./.env:/app/.env
-  #     - ./producer:/app/producer
-  #     - ./config.yaml:/app/config.yaml
-  #   command: /bin/bash /app/producer/run.sh
-    # restart: on-failure
+  producer:
+    build: 
+      dockerfile: docker/producer/Dockerfile
+    container_name: producer
+    depends_on:
+      - kafka
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+      - ./producer:/app/producer
+      - ./config.yaml:/app/config.yaml
+    command: /bin/bash /app/producer/run.sh
+    restart: on-failure
 
     
 
