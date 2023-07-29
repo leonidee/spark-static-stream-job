@@ -27,4 +27,5 @@ kafkacat.run-consumer:
 		-f 'Message Key: %k\nMessage Value: %s\nPartition: %p\nOffset: %o\nTimestamp: %T\n'
 
 spark.run-job:
-	
+	docker exec -it spark-master \
+		/app/spark/run.sh $(job-name)

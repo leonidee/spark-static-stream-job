@@ -1,4 +1,3 @@
-import sys
 from os import getenv
 
 import pyspark.sql.functions as F
@@ -8,7 +7,6 @@ from pyspark.sql import DataFrame
 from pyspark.sql.streaming import DataStreamWriter
 from pyspark.sql.utils import AnalysisException, CapturedException
 
-sys.path.append("/app")
 from src.logger import LogManager
 
 log = LogManager().get_logger(name=__name__)

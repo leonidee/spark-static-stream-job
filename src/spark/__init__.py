@@ -1,10 +1,11 @@
 from os import getenv
 
-from dotenv import load_dotenv, find_dotenv
-find_dotenv()
-load_dotenv()
+import dotenv
 
-from findspark import init, find
+dotenv.find_dotenv()
+dotenv.load_dotenv()
+
+from findspark import find, init
 
 init(getenv("SPARK_HOME"))
 find()
