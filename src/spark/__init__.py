@@ -5,12 +5,11 @@ import dotenv
 dotenv.find_dotenv()
 dotenv.load_dotenv()
 
-from findspark import find, init
+import findspark
 
-init(getenv("SPARK_HOME"))
-find()
+findspark.init(getenv("SPARK_HOME"))
+findspark.find()
 
 from src.spark.collector import StaticCollector, StreamCollector
-from src.spark.generator import SparkGenerator
 
-__all__ = ["StreamCollector", "SparkGenerator", "StaticCollector"]
+__all__ = ["StreamCollector", "StaticCollector"]
