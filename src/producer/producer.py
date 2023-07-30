@@ -1,10 +1,12 @@
 import json
+import time
 import uuid
 from datetime import datetime
 from os import getenv
 
 from kafka import KafkaProducer
-from pandas import DataFrame
+from pandas import DataFrame, read_parquet
+from s3fs import S3FileSystem
 
 from src.logger import LogManager
 
@@ -12,23 +14,43 @@ log = LogManager().get_logger(name=__name__)
 
 
 class DataProducer:
-    __slots__ = ("kafka",)
-
     def __init__(self) -> None:
-        self.kafka: KafkaProducer = self._create_producer()
-
-    def _create_producer(self) -> KafkaProducer:
         log.debug("Initializing KafkaProducer instance")
 
-        return KafkaProducer(
+        self.kafka: KafkaProducer = KafkaProducer(
             bootstrap_servers=getenv("KAFKA_BOOTSTRAP_SERVER"),
             value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         )
 
+    def _get_data(self, path: str) -> DataFrame:
+        log.debug(f"Getting input data for producing from -> '{path}'")
+
+        s3 = S3FileSystem(
+            key=getenv("AWS_ACCESS_KEY_ID"),
+            secret=getenv("AWS_SECRET_ACCESS_KEY"),
+            endpoint_url=getenv("AWS_ENDPOINT_URL"),
+        )
+
+        with s3.open(path, "rb") as f:
+            df = read_parquet(f)
+
+        log.debug(f"Loaded frame with shape {df.shape}")
+
+        return df
+
+
+class ClientsLocationsProducer(DataProducer):
+    __slots__ = ("kafka",)
+
+    def __init__(self) -> None:
+        super().__init__()
+
     def produce_data(self, path_to_data: str, topic_name: str) -> ...:
         df = self._get_data(path=path_to_data)
 
-        log.info(f"Starting producing data for '{topic_name}' kafka topic")
+        log.info(
+            f"Starting producing clients locations data for '{topic_name}' kafka topic"
+        )
 
         log.info("Processing...")
 
@@ -72,21 +94,38 @@ class DataProducer:
             if i % 10 == 0:
                 self.kafka.send(topic=topic_name, value=message)
 
-    def _get_data(self, path: str) -> DataFrame:
-        from pandas import read_csv
-        from s3fs import S3FileSystem
 
-        log.info(f"Getting input data for producing from -> '{path}'")
+class AdvCampaignProducer(DataProducer):
+    __slots__ = ("kafka",)
 
-        s3 = S3FileSystem(
-            key=getenv("AWS_ACCESS_KEY_ID"),
-            secret=getenv("AWS_SECRET_ACCESS_KEY"),
-            endpoint_url=getenv("AWS_ENDPOINT_URL"),
+    def __init__(self) -> None:
+        super().__init__()
+
+    def produce_data(self, path_to_data: str, topic_name: str) -> ...:
+        log.info(
+            f"Starting producing clients locations data for '{topic_name}' kafka topic"
         )
 
-        with s3.open(path, "r") as f:
-            df = read_csv(f)
+        log.info("Processing...")
 
-        log.debug(f"Loaded frame with shape {df.shape}")
+        while True:
+            df = self._get_data(path=path_to_data)
 
-        return df
+            # path="s3://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data/date=20230730/part-00000-3d254ef6-2d18-4f65-89de-02b413378fb9-c000.gz.parquet"
+            current_time = datetime.now()
+
+            df = df[
+                (df["start_time"] <= current_time) & (df["end_time"] >= current_time)
+            ]
+
+            if df.empty:
+                log.info(
+                    "DataFrame is empty. No actual advertisment exists in current time"
+                )
+                time.sleep(60)
+                break
+
+            for row in df.itertuples(name="Row"):
+                print(row.id, row.name)
+
+            time.sleep(60)

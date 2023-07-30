@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 import yaml
 from pyspark.sql.utils import AnalysisException, CapturedException
@@ -15,18 +16,20 @@ with open("/app/config.yaml") as f:
 
 def main() -> ...:
     try:
-        collector = StreamCollector(app_name=config["spark"]["app-name"])
+        collector = StreamCollector(app_name="streaming-app")
 
         query = collector.get_stream(
             input_topic=config["spark"]["topic"]["input"],
             output_topic=config["spark"]["topic"]["output"],
-            marketing_data_path=config["spark"]["marketing-data-path"],
+            adv_campaign_data_path=config["spark"]["adv-campaign-data"],
+            adv_campaign_update_dt=datetime.today().date(),
         )
 
         query.start().awaitTermination()
 
         query.stop()
         collector.spark.stop()
+        sys.exit(0)
 
     except KeyboardInterrupt:
         log.warning("Streaming process was manually stopped!")

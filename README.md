@@ -33,3 +33,7 @@ Or you can run only specific continers, for example:
 ```shell
 docker compouse up spark-master spark-worker-1 spark-worker-2
 ```
+
+If you want to customize kafka or Spark configuration you can edit file in ./config directory or put your file.
+
+

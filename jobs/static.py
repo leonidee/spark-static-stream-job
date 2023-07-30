@@ -1,11 +1,12 @@
 import sys
+from datetime import datetime
 
 import yaml
 from pyspark.sql.utils import AnalysisException, CapturedException
 
 sys.path.append("/app")
 from src.logger import LogManager
-from src.spark import SparkGenerator
+from src.spark import StaticCollector
 
 log = LogManager().get_logger(name=__name__)
 
@@ -15,15 +16,18 @@ with open("/app/config.yaml") as f:
 
 def main() -> ...:
     try:
-        gen = SparkGenerator(app_name="adv-campaign-data-generator-app")
+        collector = StaticCollector(app_name="streaming-app")
 
-        gen.generate_adv_campaign_data(target_path=config["spark"]["adv-campaign-data"])
+        collector.persist_clients_locations_stream(
+            topic=config["spark"]["topic"]["input"],
+        )
 
-        gen.spark.stop()
+        collector.spark.stop()
+        sys.exit(0)
 
     except (AnalysisException, CapturedException) as err:
         log.error(err)
-        gen.spark.stop()
+        collector.spark.stop()
         sys.exit(1)
 
 

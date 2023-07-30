@@ -4,7 +4,6 @@ logging:
     stream-handler: console
 
 spark:
-  marketing-data-path: s3a://data-ice-lake-05/master/data/source/spark-statis-stream/marketing-data/marketing_companies.csv
   adv-campaign-data: s3a://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data
   topic:
     input: test.in

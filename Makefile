@@ -11,6 +11,8 @@ help:
 	@echo "  run-consumeir topic-name=<str> 	 		Run kafkacat in consumer mode"
 	@echo "\nCommands for Spark:"
 	@echo "  run-job job-name=<str>				Run one of the Spark jobs listed in ./jobs directory"
+	@echo "\nCommands for Generator:"
+	@echo " generate-adv-campaign					Generate advertisment campaings data for today's date"
 
 create-topic:
 	docker exec -it kafka \
@@ -43,3 +45,13 @@ run-consumer:
 run-job:
 	docker exec -it spark-master \
 		/app/spark/run.sh $(job-name)
+
+generate-adv-campaigns:
+	docker build -t generator -f ./docker/python-common/Dockerfile .
+	docker run --rm -it \
+		--name generator \
+		--volume ./src:/app/src \
+		--volume ./.env:/app/.env \
+      	--volume ./generator:/app/generator \
+    	--volume ./config.yaml:/app/config.yaml \
+		generator  /app/generator/run.sh

@@ -90,16 +90,17 @@ services:
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.10.29:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.65.157:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_LOG_RETENTION_HOURS=24
     volumes:
       - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
     restart: unless-stopped
 
   producer:
     build: 
-      dockerfile: docker/producer/Dockerfile
+      dockerfile: docker/python-common/Dockerfile
     container_name: producer
     depends_on:
       - kafka
@@ -110,6 +111,7 @@ services:
       - ./config.yaml:/app/config.yaml
     command: /bin/bash /app/producer/run.sh
     restart: on-failure
+
 
     
 
