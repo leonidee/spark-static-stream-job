@@ -100,7 +100,7 @@ services:
 
   producer:
     build: 
-      dockerfile: docker/python-common/Dockerfile
+      dockerfile: docker/producer/Dockerfile
     container_name: producer
     depends_on:
       - kafka
@@ -112,6 +112,19 @@ services:
     command: /bin/bash /app/producer/run.sh
     restart: on-failure
 
+  adv-campaign-producer:
+    build: 
+      dockerfile: docker/producer/Dockerfile
+    container_name: adv-campaign-producer
+    depends_on:
+      - kafka
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+      - ./producer/adv-campaign:/app/producer
+      - ./config.yaml:/app/config.yaml
+    command: /bin/bash /app/producer/run.sh
+    restart: on-failure
 
     
 

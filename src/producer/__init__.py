@@ -9,6 +9,6 @@ dotenv.load_dotenv()
 
 sys.path.append("/app")
 
-from src.producer.producer import ClientsLocationsProducer, DataProducer
+from src.producer.producer import AdvCampaignProducer, ClientsLocationsProducer
 
-__all__ = ["DataProducer", "ClientsLocationsProducer"]
+__all__ = ["AdvCampaignProducer", "ClientsLocationsProducer"]

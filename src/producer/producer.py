@@ -102,17 +102,23 @@ class AdvCampaignProducer(DataProducer):
         super().__init__()
 
     def produce_data(self, path_to_data: str, topic_name: str) -> ...:
+        SLEEP_TIME = 60
+
         log.info(
             f"Starting producing clients locations data for '{topic_name}' kafka topic"
         )
 
         log.info("Processing...")
 
+        i = 0
+
         while True:
             df = self._get_data(path=path_to_data)
 
-            # path="s3://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data/date=20230730/part-00000-3d254ef6-2d18-4f65-89de-02b413378fb9-c000.gz.parquet"
             current_time = datetime.now()
+
+            log.debug(f"Iteration {i}")
+            log.debug(f"Sending message for {current_time} time")
 
             df = df[
                 (df["start_time"] <= current_time) & (df["end_time"] >= current_time)
@@ -122,10 +128,23 @@ class AdvCampaignProducer(DataProducer):
                 log.info(
                     "DataFrame is empty. No actual advertisment exists in current time"
                 )
-                time.sleep(60)
-                break
+                time.sleep(SLEEP_TIME)
+                i += 1
+                continue
 
-            for row in df.itertuples(name="Row"):
-                print(row.id, row.name)
+            for row in df.itertuples():
+                message = dict(
+                    id=row.id,
+                    name=row.name,
+                    description=row.description,
+                    provider_id=row.provider_id,
+                    provider_name=row.provider_name,
+                    start_time=str(row.start_time),
+                    end_time=str(row.end_time),
+                    point_lat=row.point_lat,
+                    point_lon=row.point_lon,
+                )
+                self.kafka.send(topic=topic_name, value=message)
 
-            time.sleep(60)
+            time.sleep(SLEEP_TIME)
+            i += 1

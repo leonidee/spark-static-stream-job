@@ -4,7 +4,7 @@ import yaml
 
 sys.path.append("/app")
 from src.logger import LogManager
-from src.producer import DataProducer
+from src.producer import ClientsLocationsProducer
 
 log = LogManager().get_logger(name=__name__)
 
@@ -13,7 +13,7 @@ with open("/app/config.yaml") as f:
 
 
 def main() -> ...:
-    producer = DataProducer()
+    producer = ClientsLocationsProducer()
 
     try:
         producer.produce_data(

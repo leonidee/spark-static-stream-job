@@ -11,4 +11,6 @@ spark:
 
 producer:
   topic: test.in
-  data-path: s3://data-ice-lake-05/master/data/source/spark-statis-stream/user-data/routes.csv
+  data-path: s3://data-ice-lake-05/master/data/source/spark-static-stream/clients-locations/part-0000.gz.parquet
+
+data:

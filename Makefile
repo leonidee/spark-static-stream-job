@@ -12,7 +12,7 @@ help:
 	@echo "\nCommands for Spark:"
 	@echo "  run-job job-name=<str>				Run one of the Spark jobs listed in ./jobs directory"
 	@echo "\nCommands for Generator:"
-	@echo " generate-adv-campaign					Generate advertisment campaings data for today's date"
+	@echo " generate-adv-campaigns					Generate advertisment campaings data for today's date"
 
 create-topic:
 	docker exec -it kafka \
