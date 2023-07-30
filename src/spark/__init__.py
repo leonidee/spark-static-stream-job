@@ -11,7 +11,6 @@ init(getenv("SPARK_HOME"))
 find()
 
 from src.spark.collector import StreamCollector
+from src.spark.generator import SparkGenerator
 
-__all__ = [
-    "StreamCollector",
-]
+__all__ = ["StreamCollector", "SparkGenerator"]

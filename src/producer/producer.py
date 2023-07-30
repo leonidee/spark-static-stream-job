@@ -20,7 +20,10 @@ class DataProducer:
     def _create_producer(self) -> KafkaProducer:
         log.debug("Initializing KafkaProducer instance")
 
-        return KafkaProducer(bootstrap_servers=getenv("KAFKA_BOOTSTRAP_SERVER"))
+        return KafkaProducer(
+            bootstrap_servers=getenv("KAFKA_BOOTSTRAP_SERVER"),
+            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+        )
 
     def produce_data(self, path_to_data: str, topic_name: str) -> ...:
         df = self._get_data(path=path_to_data)
@@ -62,13 +65,12 @@ class DataProducer:
                 "lat": lat,
                 "lon": lon,
             }
-            message_json = json.dumps(message).encode("utf-8")
 
-            self.kafka.send(topic=topic_name, value=message_json)
+            self.kafka.send(topic=topic_name, value=message)
 
             i += 1
             if i % 10 == 0:
-                self.kafka.send(topic=topic_name, value=message_json)
+                self.kafka.send(topic=topic_name, value=message)
 
     def _get_data(self, path: str) -> DataFrame:
         from pandas import read_csv

@@ -15,10 +15,15 @@ with open("/app/config.yaml") as f:
 def main() -> ...:
     producer = DataProducer()
 
-    producer.produce_data(
-        path_to_data=config["producer"]["data-path"],
-        topic_name=config["producer"]["topic"]["output"],
-    )
+    try:
+        producer.produce_data(
+            path_to_data=config["producer"]["data-path"],
+            topic_name=config["producer"]["topic"],
+        )
+    except KeyboardInterrupt:
+        log.warning("Producing data process was manualy stopped!")
+        producer.kafka.flush()
+        producer.kafka.close()
 
 
 if __name__ == "__main__":

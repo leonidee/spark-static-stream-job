@@ -65,6 +65,22 @@ services:
     depends_on:
       - spark-master
 
+  spark-worker-4:
+    <<: *spark-common
+    container_name: spark-worker-4
+    ports:
+      - "8084:8081"
+    depends_on:
+      - spark-master
+
+  spark-worker-5:
+    <<: *spark-common
+    container_name: spark-worker-5
+    ports:
+      - "8085:8081"
+    depends_on:
+      - spark-master
+
 # https://github.com/bitnami/containers/tree/main/bitnami/kafka
   kafka:
     image: docker.io/bitnami/kafka:3.4
@@ -74,7 +90,7 @@ services:
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.17.44:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.10.29:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
