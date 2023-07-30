@@ -26,6 +26,14 @@ x-spark-common: &spark-common
     - ./config/spark/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
   restart: unless-stopped
 
+x-producer-common: &producer-common
+    build: 
+      dockerfile: docker/producer/Dockerfile
+    depends_on:
+      - kafka
+    command: /bin/bash /app/producer/run.sh
+    restart: on-failure
+
 services:
   spark-master:
     <<: *spark-common
@@ -90,7 +98,7 @@ services:
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.65.157:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.8.130:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_LOG_RETENTION_HOURS=24
@@ -113,18 +121,23 @@ services:
     restart: on-failure
 
   adv-campaign-producer:
-    build: 
-      dockerfile: docker/producer/Dockerfile
+    <<: *producer-common
     container_name: adv-campaign-producer
-    depends_on:
-      - kafka
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
       - ./producer/adv-campaign:/app/producer
       - ./config.yaml:/app/config.yaml
-    command: /bin/bash /app/producer/run.sh
-    restart: on-failure
+
+  clients-locations-producer:
+    <<: *producer-common
+    container_name: clients-locations-producer
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
+      - ./producer/clients-locations:/app/producer
+      - ./config.yaml:/app/config.yaml
+
 
     
 

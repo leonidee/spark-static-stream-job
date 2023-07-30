@@ -47,7 +47,7 @@ run-job:
 		/app/spark/run.sh $(job-name)
 
 generate-adv-campaigns:
-	docker build -t generator -f ./docker/python-common/Dockerfile .
+	docker build -t generator -f ./docker/generator/Dockerfile .
 	docker run --rm -it \
 		--name generator \
 		--volume ./src:/app/src \
