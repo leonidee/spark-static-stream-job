@@ -102,6 +102,21 @@ class AdvCampaignProducer(DataProducer):
         super().__init__()
 
     def produce_data(self, path_to_data: str, topic_name: str) -> ...:
+        """
+
+        {
+            "id": "845e6b2c-2fca-11ee-b650-0242ac110002",
+            "name": "Loyalty Love",
+            "description": "Be a part of our Loyalty program and get a chance to earn points with every purchase. Redeem points for free drinks, pastries, or exclusive merchandise.",
+            "provider_id": "845e6b90-2fca-11ee-b650-0242ac110002",
+            "provider_name": "Coffee Harmony",
+            "start_time": 1690797600.0,
+            "end_time": 1690844400.0,
+            "point_lat": 55.7355114718314,
+            "point_lon": 37.6696475969381,
+        }
+        """
+
         SLEEP_TIME = 60
 
         log.info(
@@ -115,10 +130,12 @@ class AdvCampaignProducer(DataProducer):
         while True:
             df = self._get_data(path=path_to_data)
 
-            current_time = datetime.now()
+            current_time = datetime.now().timestamp()
 
             log.debug(f"Iteration {i}")
-            log.debug(f"Sending message for {current_time} time")
+            log.debug(
+                f"Sending message for {datetime.fromtimestamp(current_time)} time"
+            )
 
             df = df[
                 (df["start_time"] <= current_time) & (df["end_time"] >= current_time)
@@ -139,8 +156,8 @@ class AdvCampaignProducer(DataProducer):
                     description=row.description,
                     provider_id=row.provider_id,
                     provider_name=row.provider_name,
-                    start_time=str(row.start_time),
-                    end_time=str(row.end_time),
+                    start_time=row.start_time,
+                    end_time=row.end_time,
                     point_lat=row.point_lat,
                     point_lon=row.point_lon,
                 )

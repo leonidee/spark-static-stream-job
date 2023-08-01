@@ -23,13 +23,10 @@ def main() -> ...:
             output_topic=config["spark"]["topic"]["output"],
             adv_campaign_data_path=config["spark"]["adv-campaign-data"],
             adv_campaign_update_dt=datetime.today().date(),
+            adv_campaign_stream_topic="adv-campaign-data",
         )
 
         query.start().awaitTermination()
-
-        query.stop()
-        collector.spark.stop()
-        sys.exit(0)
 
     except KeyboardInterrupt:
         log.warning("Streaming process was manually stopped!")

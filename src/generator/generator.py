@@ -1,12 +1,10 @@
-import json
 import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, time
 from os import getenv
 
-from kafka import KafkaProducer
-from pandas import DataFrame, read_parquet
+from pandas import DataFrame
 from s3fs import S3FileSystem
 
 from src.logger import LogManager
@@ -21,8 +19,8 @@ class AdvCampaign:
     description: str
     provider_id: str
     provider_name: str
-    start_time: datetime
-    end_time: datetime
+    start_time: float
+    end_time: float
     point_lat: float
     point_lon: float
 
@@ -48,8 +46,10 @@ class QuasiDataGenerator:
                 description="Jump-start your mornings with a 20% discount on all our coffee drinks from 10:00 AM to 12:00 AM, Monday to Friday.",
                 provider_id=str(uuid.uuid1()),
                 provider_name="The Daily Grind",
-                start_time=datetime.combine(datetime.today(), time(10, 0, 0)),
-                end_time=datetime.combine(datetime.today(), time(21, 0, 0)),
+                start_time=datetime.combine(
+                    datetime.today(), time(4, 0, 0)
+                ).timestamp(),
+                end_time=datetime.combine(datetime.today(), time(21, 0, 0)).timestamp(),
                 point_lat=55.8790015313034,
                 point_lon=37.714565000436,
             ),
@@ -59,8 +59,12 @@ class QuasiDataGenerator:
                 description="Spend a soothing evening at our cafe every Friday where purchasing any drink grants you access to our watercolor workshop. Paint, sip, and relax!",
                 provider_id=str(uuid.uuid1()),
                 provider_name="Beanstalk Cafe",
-                start_time=datetime.combine(datetime.today(), time(10, 30, 0)),
-                end_time=datetime.combine(datetime.today(), time(22, 30, 0)),
+                start_time=datetime.combine(
+                    datetime.today(), time(3, 30, 0)
+                ).timestamp(),
+                end_time=datetime.combine(
+                    datetime.today(), time(22, 30, 0)
+                ).timestamp(),
                 point_lat=55.7382386551547,
                 point_lon=37.6733061300344,
             ),
@@ -70,8 +74,10 @@ class QuasiDataGenerator:
                 description="Be a part of our Loyalty program and get a chance to earn points with every purchase. Redeem points for free drinks, pastries, or exclusive merchandise.",
                 provider_id=str(uuid.uuid1()),
                 provider_name="Coffee Harmony",
-                start_time=datetime.combine(datetime.today(), time(10, 0, 0)),
-                end_time=datetime.combine(datetime.today(), time(23, 0, 0)),
+                start_time=datetime.combine(
+                    datetime.today(), time(4, 0, 0)
+                ).timestamp(),
+                end_time=datetime.combine(datetime.today(), time(23, 0, 0)).timestamp(),
                 point_lat=55.7355114718314,
                 point_lon=37.6696475969381,
             ),

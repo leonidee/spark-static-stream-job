@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 import yaml
 
@@ -15,9 +16,13 @@ with open("/app/config.yaml") as f:
 def main() -> ...:
     producer = AdvCampaignProducer()
 
+    datekey = datetime.today().date().strftime(r"%Y%m%d")
+    input_path = (
+        f"{config['spark']['adv-campaign-data']}/date={datekey}/part-00000.gz.parquet"
+    )
     try:
         producer.produce_data(
-            path_to_data="s3://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data/date=20230730/part-00000.gz.parquet",
+            path_to_data=input_path,
             topic_name="adv-campaign-data",
         )
         producer.kafka.flush()
