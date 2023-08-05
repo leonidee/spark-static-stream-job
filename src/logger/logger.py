@@ -15,8 +15,8 @@ class LogManager(Logger):
         with open("/app/config.yaml") as f:
             config = yaml.safe_load(f)
 
-        self.level = config["logging"]["python"]["level"].upper()
-        self.stream_handler = config["logging"]["python"]["stream-handler"]
+        self.level = config["logging"]["level"].upper()
+        self.stream_handler = config["logging"]["stream-handler"]
 
     def get_logger(self, name: str) -> Logger:
         """Returns configured Logger instance.

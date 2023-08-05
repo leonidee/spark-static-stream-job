@@ -12,7 +12,7 @@ from src.logger import LogManager
 log = LogManager().get_logger(name=__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AdvCampaign:
     id: str
     name: str
@@ -36,7 +36,7 @@ class QuasiDataGenerator:
             endpoint_url=getenv("AWS_ENDPOINT_URL"),
         )
 
-    def generate_adv_campaign_data(self, target_path: str) -> ...:
+    def generate_adv_campaign_data(self, output_path: str) -> ...:
         log.info("Generating advertisment campaign data")
 
         adv_campaigns = [
@@ -87,7 +87,7 @@ class QuasiDataGenerator:
         df = DataFrame(data=adv_campaigns)
 
         datekey = datetime.today().date().strftime(r"%Y%m%d")
-        output_path = f"{target_path}/date={datekey}/part-00000.gz.parquet"
+        output_path = f"{output_path}/date={datekey}/part-00000.gz.parquet"
 
         log.info(f"Writing results -> {output_path}")
 

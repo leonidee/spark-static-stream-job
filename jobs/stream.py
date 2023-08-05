@@ -12,18 +12,17 @@ log = LogManager().get_logger(name=__name__)
 
 with open("/app/config.yaml") as f:
     config = yaml.safe_load(f)
+    config = config["apps"]["spark"]
 
 
 def main() -> ...:
     try:
-        collector = StreamCollector(app_name="streaming-app")
+        collector = StreamCollector(app_name="streaming-test-app", is_debug=True)
 
         query = collector.get_stream(
-            input_topic=config["spark"]["topic"]["input"],
-            output_topic=config["spark"]["topic"]["output"],
-            adv_campaign_data_path=config["spark"]["adv-campaign-data"],
+            clients_locations_topic=config["clients-locations-topic"],
+            adv_campaign_data_path=config["adv-campaign-data"],
             adv_campaign_update_dt=datetime.today().date(),
-            adv_campaign_stream_topic="adv-campaign-data",
         )
 
         query.start().awaitTermination()

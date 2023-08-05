@@ -1,5 +1,5 @@
 # https://github.com/bitnami/containers/tree/main/bitnami/spark
-FROM docker.io/bitnami/spark:3.4.1 
+FROM docker.io/bitnami/spark:3.4.1-debian-11-r26
 
 USER root
 WORKDIR /app
@@ -37,3 +37,5 @@ RUN cd /app \
     && poetry env use /opt/python/python-3.11.1/bin/python3.11 \
     && source $(poetry env info --path)/bin/activate \
     && poetry install
+
+RUN mkdir /app/checkpoints

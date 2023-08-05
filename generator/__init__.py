@@ -10,14 +10,13 @@ log = LogManager().get_logger(name=__name__)
 
 with open("/app/config.yaml") as f:
     config = yaml.safe_load(f)
+    config = config["apps"]["generator"]
 
 
 def main() -> ...:
     generator = QuasiDataGenerator()
 
-    generator.generate_adv_campaign_data(
-        target_path=config["spark"]["adv-campaign-data"]
-    )
+    generator.generate_adv_campaign_data(output_path=config["output-data-path"])
 
 
 if __name__ == "__main__":

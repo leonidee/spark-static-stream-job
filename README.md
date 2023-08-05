@@ -22,18 +22,43 @@ Commands for Spark:
   run-job job-name=<str>                                Run one of the Spark jobs listed in ./jobs directory
 ```
 
-To run all containers listed in `docker-compose.yml` type:
+
+If you want to customize kafka or Spark configuration you can edit file in ./config directory or put your file. Make sure to 
+
+
+
+# How to deploy
+
+Create `.env` in root directory and set required invironment variables listed in `.env.tempalte`.
+
+Generate actual advertisment campaings data for todays date:
 
 ```shell
-docker compose up
+make up-generator
 ```
+This command will up docker container with generator, thats will creates some data and store on s3.
 
-Or you can run only specific continers, for example:
+Up container with kafka:
 
 ```shell
-docker compouse up spark-master spark-worker-1 spark-worker-2
+make up-kafka
+```
+Create topics for input and output:
+
+```shell
+make create-topic topic=test.in \
+  make create-topic topic=test.out
 ```
 
-If you want to customize kafka or Spark configuration you can edit file in ./config directory or put your file.
+Up containers with Spark master and 5 workers:
 
+```shell
+make up-spark 
+```
+
+Submit Spark streaming job:
+
+```shell
+make run-job job=some.py
+```
 

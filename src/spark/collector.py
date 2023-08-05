@@ -3,7 +3,6 @@ from os import getenv
 
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
-import yaml
 from pyspark.sql import DataFrame
 from pyspark.sql.streaming import DataStreamWriter
 
@@ -14,14 +13,16 @@ log = LogManager().get_logger(name=__name__)
 
 
 class StreamCollector(SparkInitializer):
-    __slots__ = "spark"
+    __slots__ = ("spark", "is_debug", "app_name")
 
-    def __init__(self, app_name: str) -> None:
+    def __init__(self, app_name: str, is_debug: bool = False) -> None:
         super().__init__(app_name)
+        self.is_debug = is_debug
+        self.app_name = app_name
 
     def get_actual_adv_campaign_data(self, path_to_data: str) -> DataFrame:
         """ """
-
+        log.debug(f"Getting actual advetisment data from -> {path_to_data}")
         CURRENT_TIMESTAMP = datetime.now().timestamp()
 
         return (
@@ -46,30 +47,39 @@ class StreamCollector(SparkInitializer):
         )
 
     def get_clients_locations_stream(self, topic: str) -> DataFrame:
-        schema = T.StructType(
-            [
-                T.StructField("client_id", T.StringType(), True),
-                T.StructField("timestamp", T.DoubleType(), True),
-                T.StructField("lat", T.DoubleType(), True),
-                T.StructField("lon", T.DoubleType(), True),
-            ]
-        )
+        options: dict = {
+            "kafka.bootstrap.servers": getenv("KAFKA_BOOTSTRAP_SERVER"),
+            "failOnDataLoss": False,
+            "startingOffsets": "latest",
+            "subscribe": topic,
+        }
 
         df = (
             self.spark.readStream.format("kafka")
-            .option("kafka.bootstrap.servers", getenv("KAFKA_BOOTSTRAP_SERVER"))
-            .option("failOnDataLoss", False)
-            .option("startingOffsets", "latest")
-            .option("subscribe", topic)
+            .options(**options)
             .load()
             .select(
+                F.col("key").cast(T.StringType()),
                 F.col("value").cast(T.StringType()),
             )
-            .withColumn("value", F.from_json(col=F.col("value"), schema=schema))
+        )
+
+        value_schema = T.StructType(
+            [
+                T.StructField("timestamp", T.DoubleType(), False),
+                T.StructField("lat", T.DoubleType(), False),
+                T.StructField("lon", T.DoubleType(), False),
+            ]
+        )
+
+        df = df.withColumns(
+            {
+                "value": F.from_json(col=F.col("value"), schema=value_schema),
+            }
         )
 
         df = df.select(
-            F.col("value.client_id").alias("client_id"),
+            F.col("key").alias("client_id"),
             F.col("value.timestamp").alias("client_device_timestamp"),
             F.col("value.lat").alias("client_point_lat"),
             F.col("value.lon").alias("client_point_lon"),
@@ -90,73 +100,61 @@ class StreamCollector(SparkInitializer):
 
     def get_stream(
         self,
+        clients_locations_topic: str,
         adv_campaign_data_path: str,
         adv_campaign_update_dt: date,
-        input_topic: str,
-        output_topic: str,
-        adv_campaign_stream_topic: str,
     ) -> DataStreamWriter:
-        # def foreachbatch_func(frame: DataFrame, batch_id: int) -> DataFrame:
-        #     adv_campaign_frame = self.get_actual_adv_campaign_data(
-        #         path_to_data=f"{adv_campaign_data_path}/date={adv_campaign_update_dt.strftime(r'%Y%m%d')}"
-        #     )
-
-        #     frame = frame.join(adv_campaign_frame, how="cross")
-
-        #     return frame
-
-        clients_locations_stream = self.get_clients_locations_stream(topic=input_topic)
-
-        adv_campaign_frame = self.get_actual_adv_campaign_data(
-            path_to_data=f"{adv_campaign_data_path}/date={adv_campaign_update_dt.strftime(r'%Y%m%d')}"
-        )
-
-        from pyspark.storagelevel import StorageLevel
-
-        adv_campaign_frame.persist(StorageLevel.MEMORY_ONLY)
-
-        frame = clients_locations_stream.join(adv_campaign_frame, how="cross")
-
-        frame = (
-            frame.withColumn(
-                "calc",
-                (
-                    F.pow(
-                        F.sin(
-                            F.radians(
-                                F.col("adv_campaign_point_lat")
-                                - F.col("client_point_lat")
-                            )
-                            / 2
-                        ),
-                        2,
-                    )
-                    + F.cos(F.radians(F.col("client_point_lat")))
-                    * F.cos(F.radians(F.col("adv_campaign_point_lat")))
-                    * F.pow(
-                        F.sin(
-                            F.radians(
-                                F.col("adv_campaign_point_lon")
-                                - F.col("client_point_lon")
-                            )
-                            / 2
-                        ),
-                        2,
-                    )
-                ),
+        def foreachbatch_func(frame: DataFrame, batch_id: int) -> DataFrame:
+            adv_campaign_frame = self.get_actual_adv_campaign_data(
+                path_to_data=f"{adv_campaign_data_path}/date={adv_campaign_update_dt.strftime(r'%Y%m%d')}"
             )
-            .withColumn(
-                "distance",
-                (
-                    F.atan2(F.sqrt(F.col("calc")), F.sqrt(-F.col("calc") + 1))
-                    * 12_742_000
-                ),
-            )
-            .withColumn("distance", F.col("distance").cast(T.IntegerType()))
-            .drop("calc")
-        )
 
-        frame = frame.where(F.col("distance") <= 2_000)
+            frame = frame.join(adv_campaign_frame, how="cross")
+
+            frame = (
+                frame.withColumn(
+                    "calc",
+                    (
+                        F.pow(
+                            F.sin(
+                                F.radians(
+                                    F.col("adv_campaign_point_lat")
+                                    - F.col("client_point_lat")
+                                )
+                                / 2
+                            ),
+                            2,
+                        )
+                        + F.cos(F.radians(F.col("client_point_lat")))
+                        * F.cos(F.radians(F.col("adv_campaign_point_lat")))
+                        * F.pow(
+                            F.sin(
+                                F.radians(
+                                    F.col("adv_campaign_point_lon")
+                                    - F.col("client_point_lon")
+                                )
+                                / 2
+                            ),
+                            2,
+                        )
+                    ),
+                )
+                .withColumn(
+                    "distance",
+                    (
+                        F.atan2(F.sqrt(F.col("calc")), F.sqrt(-F.col("calc") + 1))
+                        * 12_742_000
+                    ),
+                )
+                .withColumn("distance", F.col("distance").cast(T.IntegerType()))
+                .drop("calc")
+            )
+
+            # frame = frame.where(F.col("distance") <= 2_000)
+
+        clients_locations_stream = self.get_clients_locations_stream(
+            topic=clients_locations_topic
+        )
 
         # df = (
         #     df.where(F.col("distance") <= 2_000)
@@ -174,13 +172,19 @@ class StreamCollector(SparkInitializer):
         #         "adv_campaign_end_time",
         #     )
         # )
-
-        return (
-            frame.writeStream.format("console")
-            .option("truncate", True)
-            .outputMode("append")
-            .trigger(processingTime="10 seconds")
-        )
+        if self.is_debug:
+            return (
+                clients_locations_stream.writeStream.format("console")
+                .outputMode("append")
+                .trigger(processingTime="60 seconds")
+                .options(
+                    checkpointLocation=f"/app/checkpoints/{self.app_name}",
+                    truncate=True,
+                )
+                .foreachBatch(foreachbatch_func)
+            )
+        else:
+            ...
 
 
 class StaticCollector(SparkInitializer):

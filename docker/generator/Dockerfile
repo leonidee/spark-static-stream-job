@@ -17,5 +17,8 @@ ENV PATH="/opt/poetry/bin:$PATH"
 COPY ./pyproject.toml /app/pyproject.toml
 COPY ./poetry.lock /app/poetry.lock
 
-RUN poetry env use $(which python3) \
+RUN cd /app \
+    && poetry env use $(which python3) \
+    && . $(poetry env info --path)/bin/activate \
     && poetry install
+

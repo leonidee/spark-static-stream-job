@@ -32,16 +32,6 @@ x-spark-common: &spark-common
   networks:
     - internal
 
-x-producer-common: &producer-common
-  build: 
-    dockerfile: docker/producer/Dockerfile
-  depends_on:
-    - kafka
-  command: /bin/bash /app/producer/run.sh
-  restart: on-failure
-  networks:
-    - internal
-
 services:
   spark-master:
     <<: *spark-common
@@ -99,16 +89,15 @@ services:
 
 # https://github.com/bitnami/containers/tree/main/bitnami/kafka
   kafka:
-    image: docker.io/bitnami/kafka:3.4
+    image: docker.io/bitnami/kafka:3.4.1-debian-11-r13
     container_name: kafka
     ports:
       - 9092:9092
     environment:
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://158.160.64.217:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://84.201.165.117:9092
       - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_LOG_RETENTION_HOURS=24
     volumes:
       - ./config/kafka/log4j.properties:/opt/bitnami/kafka/config/log4j.properties 
@@ -116,24 +105,35 @@ services:
     networks:
       - internal
 
-  adv-campaign-producer:
-    <<: *producer-common
-    container_name: adv-campaign-producer
+  producer:
+    build: 
+      dockerfile: docker/producer/Dockerfile
+    container_name: producer
+    command: /bin/bash /app/producer/run.sh
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-      - ./producer/adv-campaign:/app/producer
+      - ./producer:/app/producer
       - ./config.yaml:/app/config.yaml
+    depends_on:
+      - kafka
+    restart: on-failure
+    networks:
+      - internal
 
-  clients-locations-producer:
-    <<: *producer-common
-    container_name: clients-locations-producer
+  generator:
+    build: 
+      dockerfile: docker/generator/Dockerfile
+    container_name: generator
+    command: /bin/bash /app/generator/run.sh
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-      - ./producer/clients-locations:/app/producer
+      - ./generator:/app/generator 
       - ./config.yaml:/app/config.yaml
-
+    restart: on-failure
+    networks:
+      - internal
 
     
 

@@ -1,16 +1,27 @@
+# Configurations for python built-in logging
 logging:
-  python:
-    level: debug
-    stream-handler: console
+  level: debug
+  stream-handler: console
 
-spark:
-  adv-campaign-data: s3a://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data
-  topic:
-    input: test.in
-    output: test.out
+# Kafka topics
+topics:
+  clients-locations: &clients-locations-topic test.in
+  output: &output-topic test.out
 
-producer:
-  topic: test.in
-  data-path: s3://data-ice-lake-05/master/data/source/spark-static-stream/clients-locations/part-0000.gz.parquet
-
+# Data paths
 data:
+  adv-campaign-data: &adv-campaign-data s3a://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data
+  clients-locations-data: &clients-locations-data s3://data-ice-lake-05/master/data/source/spark-static-stream/clients-locations
+
+# Apps configurations
+apps:
+  spark:
+    adv-campaign-data: *adv-campaign-data
+    clients-locations-topic: *clients-locations-topic
+
+  producer:
+    output-topic: *clients-locations-topic
+    input-data-path: *clients-locations-data
+
+  generator:
+    output-data-path: *adv-campaign-data

@@ -1,29 +1,26 @@
-import time
-import uuid
-from dataclasses import dataclass, field, post_init
-from datetime import datetime, time
 from os import getenv
 
+import dotenv
+import pandas as pd
+from s3fs import S3FileSystem
 
-@dataclass
-class AdvCampaign:
-    id: str
-
-    def __init__(self, id, time):
-        self.id = id
-        self.time = time
-
-    @property
-    def time(self):
-        return self.time.timestamp()
-
-    @time.setter
-    def time(self, v: datetime):
-        self.time = v
+dotenv.load_dotenv()
 
 
 def main():
-    a = AdvCampaign(id="idisa[ifjiweo", time=datetime.now())
+    s3 = S3FileSystem(
+        key=getenv("AWS_ACCESS_KEY_ID"),
+        secret=getenv("AWS_SECRET_ACCESS_KEY"),
+        endpoint_url=getenv("AWS_ENDPOINT_URL"),
+    )
+
+    a = s3.ls(
+        "s3://data-ice-lake-05/master/data/source/spark-static-stream/clients-locations"
+    )
+    with s3.open(*a, "rb") as f:
+        df = pd.read_parquet(f)
+
+    print(df.head(10))
 
 
 if __name__ == "__main__":
