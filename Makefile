@@ -52,7 +52,7 @@ run-job:
 
 # docker commands
 up-spark:
-	docker compose up spark-master spark-worker-1 spark-worker-2 spark-worker-3 spark-worker-4 spark-worker-5
+	docker compose up --build spark-master spark-worker-1 spark-worker-2 spark-worker-3 spark-worker-4 spark-worker-5
 
 up-kafka:
 	docker compose up kafka

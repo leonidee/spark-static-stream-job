@@ -1,6 +1,6 @@
 from os import getenv
 
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession  # type: ignore
 
 from src.logger import LogManager
 

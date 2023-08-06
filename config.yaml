@@ -6,18 +6,20 @@ logging:
 # Kafka topics
 topics:
   clients-locations: &clients-locations-topic test.in
-  output: &output-topic test.out
+  clients-push: &clients-push-topic test.out
 
 # Data paths
 data:
   adv-campaign-data: &adv-campaign-data s3a://data-ice-lake-05/master/data/source/spark-static-stream/adv-campaign-data
-  clients-locations-data: &clients-locations-data s3://data-ice-lake-05/master/data/source/spark-static-stream/clients-locations
+  clients-locations-data: &clients-locations-data s3a://data-ice-lake-05/master/data/source/spark-static-stream/clients-locations
 
 # Apps configurations
 apps:
   spark:
-    adv-campaign-data: *adv-campaign-data
     clients-locations-topic: *clients-locations-topic
+    clients-push-topic: *clients-push-topic
+    adv-campaign-data: *adv-campaign-data
+    checkpoints-location: s3a://data-ice-lake-05/master/data/source/spark-streaming-checkpoints
 
   producer:
     output-topic: *clients-locations-topic

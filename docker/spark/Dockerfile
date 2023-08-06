@@ -38,4 +38,5 @@ RUN cd /app \
     && source $(poetry env info --path)/bin/activate \
     && poetry install
 
-RUN mkdir /app/checkpoints
+# Create path for Spark checkpoints
+# RUN mkdir /app/checkpoints

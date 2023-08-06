@@ -10,6 +10,6 @@ import findspark
 findspark.init(getenv("SPARK_HOME"))
 findspark.find()
 
-from src.spark.collector import StaticCollector, StreamCollector
+from src.spark.collector import StreamCollector
 
-__all__ = ["StreamCollector", "StaticCollector"]
+__all__ = ["StreamCollector"]
