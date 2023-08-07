@@ -20,4 +20,4 @@ COPY ./poetry.lock /app/poetry.lock
 RUN cd /app \
     && poetry env use $(which python3) \
     && . $(poetry env info --path)/bin/activate \
-    && poetry install
+    && poetry install --only producer

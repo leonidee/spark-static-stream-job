@@ -1,19 +1,19 @@
 help:
 	@echo "Usage: make [COMMAND]... [OPTIONS]...\n"
 	@echo "Comands for kafka running in container:"
-	@echo "    create-topic topic=<str>			Builds the docker images for the docker-compose setup"
-	@echo "    describe-topic topic=<str>			Stops and removes all docker containers"
-	@echo "    list-topics					Compile dependencies from 'requirements.in' into 'requirements.txt'"
+	@echo "    make create-topic topic=<str>			Create new topic in kafka cluster"
+	@echo "    make describe-topic topic=<str>			Show descripiton of given topic"
+	@echo "    make list-topics					Show list of all created topics in kafka cluster"
 	@echo "\nkafkacat commands:"
-	@echo "    run-producer topic=<str> 			Run kafkacat in producer mode"
-	@echo "    run-consumer topic=<str> 			Run kafkacat in consumer mode"
+	@echo "    make run-producer topic=<str> 			Run kafkacat in producer mode"
+	@echo "    make run-consumer topic=<str> 			Run kafkacat in consumer mode"
 	@echo "\nCommands for Spark:"
-	@echo "    run-job job=<str>				Run one of the Spark jobs listed in ./jobs folder"
+	@echo "    make run-job job=<str>				Run one of the Spark jobs listed in ./jobs folder"
 	@echo "\nDocker compose commands:"
-	@echo "    up-generator 				Generate advertisment campaings data for today's date"
-	@echo "    up-producer 				Up data producer to generate user moving locations data"
-	@echo "    up-kafka 					Up kafka in container"
-	@echo "    up-spark 					Up Spark cluster with 5 workers"
+	@echo "    make up-generator 					Generate advertisment campaings data for today's date"
+	@echo "    make up-producer 					Up data producer to generate client's moving locations"
+	@echo "    make up-kafka 					Up kafka in container"
+	@echo "    make up-spark 					Up Spark cluster with 5 workers in containers"
 
 # kafka commands
 create-topic:
@@ -21,7 +21,7 @@ create-topic:
 		/opt/bitnami/kafka/bin/kafka-topics.sh \
 		--bootstrap-server localhost:9092 \
 		--topic $(topic) --create \
-		--partitions 3 --replication-factor 1
+		--partitions 5 --replication-factor 1
 
 describe-topic:
 	docker exec -it kafka \

@@ -36,7 +36,5 @@ COPY ./poetry.lock /app/poetry.lock
 RUN cd /app \
     && poetry env use /opt/python/python-3.11.1/bin/python3.11 \
     && source $(poetry env info --path)/bin/activate \
-    && poetry install
+    && poetry install --only spark
 
-# Create path for Spark checkpoints
-# RUN mkdir /app/checkpoints

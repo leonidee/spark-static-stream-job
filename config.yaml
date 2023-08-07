@@ -5,8 +5,8 @@ logging:
 
 # Kafka topics
 topics:
-  clients-locations: &clients-locations-topic test.in
-  clients-push: &clients-push-topic test.out
+  clients-locations: &clients-locations-topic clients.client-routes-locations.export
+  clients-push: &clients-push-topic adv-push.actual-adv.export
 
 # Data paths
 data:

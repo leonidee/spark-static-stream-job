@@ -4,27 +4,33 @@ To show project's `make` help page just type:
 ```shell
 make help
 ```
+
+
 You will see something like that:
 
-```
+
+```shell
 Usage: make [COMMAND]... [OPTIONS]...
 
-Commands for kafka:
-  create-topic topic-name=<str>                         Builds the docker images for the docker-compose setup
-  describe-topic topic-name=<str>                       Stops and removes all docker containers
-  list-topics                                           Compile dependencies from 'requirements.in' into 'requirements.txt'
+Comands for kafka running in container:
+    make create-topic topic=<str>                    Create new topic in kafka cluster
+    make describe-topic topic=<str>                  Show descripiton of given topic
+    make list-topics                                 Show list of all created topics in kafka cluster
 
-Commands for kafkacat utility:
-  run-producer topic-name=<str>                         Run kafkacat in producer mode
-  run-consumeir topic-name=<str>                        Run kafkacat in consumer mode
+kafkacat commands:
+    make run-producer topic=<str>                    Run kafkacat in producer mode
+    make run-consumer topic=<str>                    Run kafkacat in consumer mode
 
 Commands for Spark:
-  run-job job-name=<str>                                Run one of the Spark jobs listed in ./jobs directory
+    make run-job job=<str>                           Run one of the Spark jobs listed in ./jobs folder
+
+Docker compose commands:
+    make up-generator                                Generate advertisment campaings data for today's date
+    make up-producer                                 Up data producer to generate client's moving locations
+    make up-kafka                                    Up kafka in container
+    make up-spark                                    Up Spark cluster with 5 workers in containers
+
 ```
-
-
-If you want to customize kafka or Spark configuration you can edit file in ./config directory or put your file. Make sure to 
-
 
 
 # How to deploy
@@ -43,13 +49,16 @@ Up container with kafka:
 ```shell
 make up-kafka
 ```
-Create topics for input and output:
+Create topics for clients location data producer:
 
 ```shell
-make create-topic topic=test.in \
-  make create-topic topic=test.out
+make create-topic topic=clients.client-routes-locations.export
 ```
+And Streaming application output:
 
+```shell
+make create-topic topic=adv-push.actual-adv.export
+```
 Up containers with Spark master and 5 workers:
 
 ```shell
@@ -59,6 +68,24 @@ make up-spark
 Submit Spark streaming job:
 
 ```shell
-make run-job job=some.py
+make run-job job=collect-streaming-query.py
 ```
 
+Now you can run kafkacat in producer mode to see messages producer buy streaming application:
+
+```shell
+make run-consumer topic=adv-push.actual-adv.export
+```
+
+
+For debugging purposes specify flag in `config.yaml` file `is_debug` to `true`
+
+```yaml
+# Apps configurations
+apps:
+  spark:
+    is_debug: true # <----- here
+    clients-locations-topic: *clients-locations-topic
+```
+
+Now all result producing by Streaming Query will be printed to console.
