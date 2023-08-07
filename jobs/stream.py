@@ -30,7 +30,9 @@ def log_query_heartbeat(query) -> ...:
 
 
 def main() -> ...:
-    collector = StreamCollector(app_name="streaming-test-app", is_debug=True)
+    collector = StreamCollector(
+        app_name="streaming-test-app", is_debug=config["is_debug"]
+    )
 
     try:
         query = collector.get_streaming_query(
@@ -41,13 +43,13 @@ def main() -> ...:
             query_name="test-query",
             checkpoints_location=config["checkpoints-location"],
         )
+
         with ThreadPoolExecutor(max_workers=2) as executor:
             executor.submit(run_streaming_query, query)
             executor.submit(log_query_heartbeat, query)
 
     except KeyboardInterrupt:
         log.warning("Streaming query was manually stopped!")
-        query.stop()  # type: ignore
         collector.spark.stop()
         sys.exit(0)
 

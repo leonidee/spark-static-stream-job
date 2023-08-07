@@ -106,11 +106,12 @@ class StreamCollector(SparkInitializer):
                         F.col("client_distance"),
                         F.col("adv_campaign_id"),
                         F.col("adv_campaign_name"),
+                        F.col("adv_campaign_provider_id"),
+                        F.col("adv_campaign_provider_name"),
                         F.col("adv_campaign_description"),
                         F.col("adv_campaign_start_time"),
                         F.col("adv_campaign_end_time"),
-                        F.col("adv_campaign_point_lat"),
-                        F.col("adv_campaign_point_lon"),
+                        F.col("trigger_timestamp"),
                     )
                 ),
             }
@@ -125,9 +126,6 @@ class StreamCollector(SparkInitializer):
         query_name: str,
         checkpoints_location: str,
     ) -> pyspark.sql.streaming.DataStreamWriter:
-        def foreachbatch_func(batch_frame: pyspark.sql.DataFrame, batch_id: int) -> ...:
-            ...
-
         adv_campaign_frame = self.get_actual_adv_campaign_data(
             path_to_data=f"{adv_campaign_data_path}/date={adv_campaign_update_dt.strftime(r'%Y%m%d')}"
         )
@@ -177,9 +175,6 @@ class StreamCollector(SparkInitializer):
             .drop("calc", "distance")
         )
 
-        # Add trigger time
-        frame = frame.withColumn("trigger_timestamp", F.lit(datetime.now().timestamp()))
-
         frame = (
             frame.where(F.col("client_distance") <= 2_000)
             .withColumns(
@@ -202,12 +197,11 @@ class StreamCollector(SparkInitializer):
                 "adv_campaign_description",
                 "adv_campaign_start_time",
                 "adv_campaign_end_time",
+                "trigger_timestamp",
             )
         )
 
         if self.is_debug:
-            # frame = self.prepare_for_kafka(frame)
-
             return (
                 frame.writeStream.format("console")
                 .queryName(query_name)
@@ -215,7 +209,7 @@ class StreamCollector(SparkInitializer):
                 .trigger(processingTime="30 seconds")
                 .options(
                     checkpointLocation=f"{checkpoints_location}/{self.app_name}/{query_name}",
-                    truncate=True,
+                    truncate=False,
                 )
                 .start()
             )
