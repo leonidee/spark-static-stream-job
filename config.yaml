@@ -1,6 +1,6 @@
 # Configurations for python built-in logging
 logging:
-  level: debug
+  level: info
   stream-handler: console
 
 # Kafka topics
