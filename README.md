@@ -3,7 +3,7 @@
 # About
 
 
-![schema](https://github.com/leonidee/spark-static-stream-job/blob/main/images/20230810060939.png?raw=true)
+![schema](https://github.com/leonidee/spark-streaming-app/blob/main/images/20230810060939.png?raw=true)
 
 This Project is a simulation of geo-targeted marketing campaigns based on real-time geo-data collected from users devices implemented with Apache Spark Streaming engine and Kafka as main message broker.
 
