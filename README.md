@@ -1,5 +1,9 @@
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 # About
+
+
+![schema](https://github.com/leonidee/spark-static-stream-job/blob/main/images/20230810060939.png?raw=true)
 
 This Project is a simulation of geo-targeted marketing campaigns based on real-time geo-data collected from users devices implemented with Apache Spark Streaming engine and Kafka as main message broker.
 
