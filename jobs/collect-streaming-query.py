@@ -31,7 +31,7 @@ def log_query_heartbeat(query) -> ...:
 
 def main() -> ...:
     collector = StreamCollector(
-        app_name="streaming-test-app", is_debug=config["is_debug"]
+        app_name=config["app-name"], is_debug=config["is-debug"]
     )
 
     try:

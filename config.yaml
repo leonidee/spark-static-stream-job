@@ -16,7 +16,8 @@ data:
 # Apps configurations
 apps:
   spark:
-    is_debug: false
+    app-name: streaming-app
+    is-debug: false
     clients-locations-topic: *clients-locations-topic
     clients-push-topic: *clients-push-topic
     adv-campaign-data: *adv-campaign-data
